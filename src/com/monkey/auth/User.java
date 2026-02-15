@@ -8,12 +8,13 @@ public class User {
         PLAYER, ADMIN, DEVELOPER
     }
 
-    private String username;
-    private String password;
+    private final String username; // Immutable
+    private final String password; // Immutable
     private Role role;
     private JSONObject progress;
 
-    public User(String username, String password, Role role, JSONObject progress) {
+    // Added 'final' to parameters
+    public User(final String username, final String password, final Role role, final JSONObject progress) {
         this.username = username;
         this.password = password;
         this.role = role != null ? role : Role.PLAYER;
@@ -23,9 +24,13 @@ public class User {
     public String getUsername() { return username; }
 
     public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
 
-    // Logic Helpers
+    public void setRole(final Role role) {
+        this.role = role;
+    }
+
+    // --- Logic Helpers ---
+
     public boolean isDeveloper() {
         return role == Role.DEVELOPER;
     }
@@ -38,30 +43,33 @@ public class User {
         return role == Role.ADMIN || role == Role.DEVELOPER;
     }
 
-    public boolean checkPassword(String input) {
+    public boolean checkPassword(final String input) {
         return password.equals(input);
     }
 
-    public int getStars(String levelName) {
+    public int getStars(final String levelName) {
         return progress.optInt(levelName, 0);
     }
 
-    public void setStars(String levelName, int stars) {
-        progress.put(levelName, stars); // Allows overwriting (Admin giving progress)
+    public void setStars(final String levelName, final int stars) {
+        progress.put(levelName, stars);
     }
 
     public void resetProgress() {
         this.progress = new JSONObject();
     }
 
-    public JSONObject getProgressData() { return progress; }
+    public JSONObject getProgressData() {
+        return progress;
+    }
 
     public JSONObject toJSON() {
         JSONObject json = new JSONObject();
         json.put("username", username);
         json.put("password", password);
-        json.put("role", role.name()); // Save Role as String
-        json.put("progress", progress);
+        json.put("role", role.name());
+        // Now using the getter as requested
+        json.put("progress", getProgressData());
         return json;
     }
 }

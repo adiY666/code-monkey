@@ -1,5 +1,6 @@
 package com.monkey.gui;
 
+import com.monkey.gui.components.UIConstants;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,24 +11,21 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.border.EmptyBorder;
 
 public class EditorSidebar extends JPanel {
 
     private static final int WIDTH = 450;
-    private static final int HEIGHT = 850;
 
+    // Colors from your example
     private static final Color BLUE = new Color(52, 152, 219);
     private static final Color PURPLE = new Color(155, 89, 182);
     private static final Color GREEN = new Color(46, 204, 113);
     private static final Color TEAL = new Color(0, 150, 136);
-    private static final Color RUN_BTN_COLOR = new Color(39, 174, 96);
-    private static final Color BACK_BTN_COLOR = new Color(149, 165, 166);
-    private static final Color ORANGE = new Color(230, 126, 34);
 
-    // Font that supports Emojis better
-    private static final Font EMOJI_FONT = new Font("Segoe UI Emoji", Font.BOLD, 12);
-    // Better coding font
-    private static final Font CODE_FONT = new Font("Consolas", Font.PLAIN, 16);
+    // Editor Theme
+    private static final Color EDITOR_BG = new Color(40, 44, 52);
+    private static final Color EDITOR_TEXT = new Color(171, 178, 191);
 
     public final JTextArea codeArea;
     private final VisualMonkeyStudio studio;
@@ -35,24 +33,36 @@ public class EditorSidebar extends JPanel {
     public EditorSidebar(VisualMonkeyStudio studio) {
         this.studio = studio;
         setLayout(new BorderLayout());
-        setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        setPreferredSize(new Dimension(WIDTH, 0));
+        setBackground(UIConstants.BG_COLOR);
 
+        // --- 1. TABS (Matches your example) ---
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Arial", Font.BOLD, 12));
+        tabs.setBackground(UIConstants.BG_COLOR);
+
         setupTabs(tabs);
         add(tabs, BorderLayout.NORTH);
 
+        // --- 2. CODE AREA (Matches your example) ---
         codeArea = new JTextArea("# Write code to get bananas!\n", 20, 30);
-        codeArea.setFont(CODE_FONT); // Better font
-        codeArea.setBackground(new Color(40, 44, 52)); // Dark theme editor
-        codeArea.setForeground(new Color(171, 178, 191));
+        codeArea.setFont(new Font("Consolas", Font.PLAIN, 16));
+        codeArea.setBackground(EDITOR_BG);
+        codeArea.setForeground(EDITOR_TEXT);
         codeArea.setCaretColor(Color.WHITE);
+        codeArea.setTabSize(4);
+        codeArea.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        add(new JScrollPane(codeArea), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(codeArea);
+        scroll.setBorder(null);
+        scroll.getVerticalScrollBar().setBackground(EDITOR_BG);
+        add(scroll, BorderLayout.CENTER);
 
+        // --- 3. FOOTER (Run/Reset only) ---
         setupFooter();
     }
 
+    // --- YOUR EXACT CODE HERE ---
     private void setupTabs(JTabbedPane tabs) {
         JPanel basic = createTabPanel(new Color(235, 245, 251));
         addToolBtn(basic, "⬆ STEP(50)", "step(50);\n", BLUE);
@@ -89,46 +99,51 @@ public class EditorSidebar extends JPanel {
     private JPanel createTabPanel(Color bg) {
         JPanel p = new JPanel(new GridLayout(0, 1, 2, 2));
         p.setBackground(bg);
-        p.setOpaque(true);
+        p.setBorder(new EmptyBorder(5, 5, 5, 5));
         return p;
     }
 
     private void addToolBtn(JPanel p, String label, String code, Color color) {
         JButton b = new JButton(label);
-        b.setFont(EMOJI_FONT); // Force emoji support
+        b.setFont(UIConstants.EMOJI_FONT.deriveFont(12f));
         b.setBackground(color);
         b.setForeground(Color.WHITE);
-        b.setOpaque(true);
+        b.setFocusPainted(false);
         b.setBorderPainted(false);
-        b.addActionListener(e -> codeArea.insert(code, codeArea.getCaretPosition()));
+
+        b.addActionListener(e -> {
+            codeArea.insert(code, codeArea.getCaretPosition());
+            codeArea.requestFocus();
+        });
         p.add(b);
     }
 
     private void setupFooter() {
-        JPanel footer = new JPanel(new GridLayout(3, 1, 5, 5));
+        JPanel footer = new JPanel(new GridLayout(2, 1, 5, 5));
+        footer.setBackground(UIConstants.BG_COLOR);
+        footer.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JButton runBtn = new JButton("▶ RUN CODE");
-        runBtn.setFont(EMOJI_FONT);
-        runBtn.setBackground(RUN_BTN_COLOR);
-        runBtn.setForeground(Color.WHITE);
+        configBtn(runBtn, UIConstants.BTN_GREEN);
         runBtn.addActionListener(e -> studio.executeCode(codeArea.getText()));
 
         JButton restartBtn = new JButton("↺ TRY AGAIN");
-        restartBtn.setFont(EMOJI_FONT);
-        restartBtn.setBackground(ORANGE);
-        restartBtn.setForeground(Color.WHITE);
+        configBtn(restartBtn, UIConstants.BTN_ORANGE);
         restartBtn.addActionListener(e -> studio.loadLevel(studio.getCurrentFile()));
-
-        JButton menuBtn = new JButton("⬅ BACK TO MENU");
-        menuBtn.setFont(EMOJI_FONT);
-        menuBtn.setBackground(BACK_BTN_COLOR);
-        menuBtn.setForeground(Color.WHITE);
-        menuBtn.addActionListener(e -> studio.returnToMenu());
 
         footer.add(runBtn);
         footer.add(restartBtn);
-        footer.add(menuBtn);
+        // Menu button removed
+
         add(footer, BorderLayout.SOUTH);
     }
 
+    private void configBtn(JButton btn, Color bg) {
+        btn.setFont(UIConstants.TITLE_FONT.deriveFont(18f));
+        btn.setBackground(bg);
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        btn.setBorderPainted(false);
+        btn.setPreferredSize(new Dimension(0, 50));
+    }
 }

@@ -1,97 +1,130 @@
 package com.monkey.logic;
 
+import com.monkey.animation.AnimationManager; // Import the new animation package
+import com.monkey.core.Turtle;
 import com.monkey.gui.GameEnginePanel;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.IntConsumer;
 import javax.swing.SwingUtilities;
 
 public class CodeExecutor {
 
-    private static final int ANIMATION_FRAMES = 30;
-    private static final int FRAME_DELAY = 16;
-    private static final int COMMAND_DELAY = 200;
-
     private final GameEnginePanel engine;
-    private final Consumer<Integer> onComplete;
+    private final IntConsumer onComplete;
+    private volatile boolean isRunning = false;
 
-    public CodeExecutor(GameEnginePanel engine, Consumer<Integer> onComplete) {
+    public CodeExecutor(GameEnginePanel engine, IntConsumer onComplete) {
         this.engine = engine;
         this.onComplete = onComplete;
     }
 
     public void execute(String code) {
+        if (isRunning) return;
+        isRunning = true;
+
+        engine.resetLevel();
+
         new Thread(() -> {
-            try {
-                String[] rawLines = code.split("\n");
-                List<String> lines = new ArrayList<>();
-                int validLineCount = 0;
-                for(String s : rawLines) {
-                    if(!s.trim().isEmpty() && !s.trim().startsWith("#")) {
-                        lines.add(s.trim());
-                        validLineCount++;
+            String[] lines = code.split("\n");
+            int count = 0;
+
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) continue;
+
+                try {
+                    boolean success = processLine(line);
+                    if (success) {
+                        count++;
+                        // Small pause between commands so they don't blend together
+                        Thread.sleep(200);
                     }
+                } catch (InterruptedException e) {
+                    break;
+                } catch (Exception e) {
+                    System.err.println("Error processing line: " + line + " -> " + e.getMessage());
                 }
-
-                runBlock(lines);
-
-                final int linesUsed = validLineCount;
-                SwingUtilities.invokeLater(() -> onComplete.accept(linesUsed));
-
-            } catch(Exception e) {
-                e.printStackTrace();
             }
+
+            isRunning = false;
+
+            // Send final result back to UI thread
+            final int resultCount = count;
+            SwingUtilities.invokeLater(() -> onComplete.accept(resultCount));
+
         }).start();
     }
 
-    private void runBlock(List<String> lines) throws InterruptedException {
-        for(int i = 0; i < lines.size(); i++) {
-            String line = lines.get(i);
+    private boolean processLine(String line) throws InterruptedException {
+        // Remove trailing semicolon
+        if (line.endsWith(";")) line = line.substring(0, line.length() - 1);
 
-            if(line.startsWith("step")) {
-                int val = parseNumber(line);
-                animateMove(val);
-                Thread.sleep(COMMAND_DELAY);
-            } else if(line.startsWith("turn")) {
-                String dir = line.contains("left") ? "left" : "right";
-                SwingUtilities.invokeLater(() -> engine.rotateMonkey(dir));
-                Thread.sleep(COMMAND_DELAY);
-            } else if(line.startsWith("for")) {
-                int limit = 0;
-                Matcher m = Pattern.compile("i\\s*<\\s*(\\d+)").matcher(line);
-                if(m.find()) limit = Integer.parseInt(m.group(1));
+        // --- 1. SMOOTH MONKEY MOVE ---
+        if (line.startsWith("step(")) {
+            int dist = parseValue(line);
+            // Use the Animation Package! (20 frames for smooth slide)
+            AnimationManager.smoothStep(engine, dist, 20);
+            return true;
+        }
 
-                List<String> block = new ArrayList<>();
-                int openBraces = 1;
-                i++;
-                while(i < lines.size() && openBraces > 0) {
-                    String sub = lines.get(i);
-                    if(sub.contains("{")) openBraces++;
-                    if(sub.contains("}")) openBraces--;
-                    if(openBraces > 0) block.add(sub);
-                    if(openBraces > 0) i++;
-                }
+        // --- 2. SMOOTH TURN ---
+        else if (line.startsWith("turn(")) {
+            double angle = getTurnAngle(line);
+            // Use the Animation Package! (15 frames for smooth rotation)
+            AnimationManager.smoothTurn(engine, angle, 15);
+            return true;
+        }
 
-                for(int k = 0; k < limit; k++) {
-                    runBlock(block);
-                }
+        // --- 3. TURTLE COMMANDS ---
+        else if (line.startsWith("turtles[") || line.startsWith("turtle.")) {
+            return handleTurtle(line);
+        }
+
+        return false;
+    }
+
+    private boolean handleTurtle(String line) {
+        int index = 0;
+        String cmd = line;
+
+        try {
+            // Parse: turtles[0].step(50) -> index=0, cmd="step(50)"
+            if(line.startsWith("turtles[")) {
+                index = Integer.parseInt(line.substring(8, line.indexOf("]")));
+                cmd = line.substring(line.indexOf("]") + 2);
+            } else if(line.startsWith("turtle.")) {
+                cmd = line.substring(7);
             }
+
+            if(index >= engine.turtles.size()) return false;
+            Turtle t = engine.turtles.get(index);
+
+            // Execute Turtle Command
+            if(cmd.startsWith("step(")) {
+                double dist = parseValue(cmd);
+                t.step(dist);
+            } else if(cmd.startsWith("turn(")) {
+                double angle = getTurnAngle(cmd);
+                t.turn(angle);
+            }
+            engine.repaint();
+            return true;
+
+        } catch (Exception e) {
+            return false;
         }
     }
 
-    private void animateMove(int distance) throws InterruptedException {
-        double perFrame = (double) distance / ANIMATION_FRAMES;
-        for(int i = 0; i < ANIMATION_FRAMES; i++) {
-            SwingUtilities.invokeLater(() -> engine.moveMonkey(perFrame));
-            Thread.sleep(FRAME_DELAY);
-        }
+    private double getTurnAngle(String line) {
+        if (line.contains("'left'") || line.contains("\"left\"")) return 90;
+        else if (line.contains("'right'") || line.contains("\"right\"")) return -90;
+        else return parseValue(line);
     }
 
-    private int parseNumber(String line) {
-        Matcher m = Pattern.compile("-?\\d+").matcher(line);
-        return m.find() ? Integer.parseInt(m.group()) : 0;
+    private int parseValue(String line) {
+        try {
+            int start = line.indexOf("(") + 1;
+            int end = line.lastIndexOf(")");
+            return Integer.parseInt(line.substring(start, end).trim());
+        } catch (Exception e) { return 0; }
     }
-
 }

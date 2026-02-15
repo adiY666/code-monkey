@@ -1,9 +1,9 @@
 package com.monkey.gui;
 
+import com.monkey.gui.components.UIConstants;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.util.ArrayList;
@@ -19,10 +19,9 @@ import javax.swing.border.EmptyBorder;
 
 public class MapEditorTools extends JPanel {
 
-    // MATCHING SIDEBAR WIDTH (See EditorSidebar.WIDTH)
     private static final int WIDTH = 450;
 
-    private static final Font EMOJI_FONT = new Font("Segoe UI Emoji", Font.BOLD, 24); // Bigger Icons
+    // Use UIConstants for colors too if you want, or keep local
     private static final Color TOOLBAR_BG = new Color(44, 62, 80);
     private static final Color ACTIVE_TOOL_COLOR = new Color(46, 204, 113);
     private static final Color INACTIVE_TOOL_COLOR = new Color(52, 73, 94);
@@ -30,20 +29,17 @@ public class MapEditorTools extends JPanel {
     private final VisualMonkeyStudio context;
     private final List<JToggleButton> buttons = new ArrayList<>();
 
-    // Panels for organization
     private final JPanel objPanel;
     private final JPanel actPanel;
 
     public MapEditorTools(VisualMonkeyStudio context) {
         this.context = context;
 
-        // 1. Force Width to match Code Sidebar
         setPreferredSize(new Dimension(WIDTH, 0));
         setBackground(TOOLBAR_BG);
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
         setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        // 2. Title
         JLabel title = new JLabel("EDITOR TOOLS");
         title.setForeground(Color.WHITE);
         title.setFont(new Font("Arial", Font.BOLD, 24));
@@ -51,11 +47,10 @@ public class MapEditorTools extends JPanel {
         add(title);
         add(Box.createVerticalStrut(30));
 
-        // 3. Object Section
         addSectionLabel("PLACEMENTS");
-        objPanel = new JPanel(new GridLayout(0, 3, 10, 10)); // 3 Columns
+        objPanel = new JPanel(new GridLayout(0, 3, 10, 10));
         objPanel.setBackground(TOOLBAR_BG);
-        objPanel.setMaximumSize(new Dimension(WIDTH, 200)); // Limit height
+        objPanel.setMaximumSize(new Dimension(WIDTH, 200));
 
         addToolBtn(objPanel, "Banana", "🍌");
         addToolBtn(objPanel, "Stone", "🪨");
@@ -66,9 +61,8 @@ public class MapEditorTools extends JPanel {
         add(objPanel);
         add(Box.createVerticalStrut(30));
 
-        // 4. Action Section
         addSectionLabel("MANIPULATION");
-        actPanel = new JPanel(new GridLayout(0, 2, 10, 10)); // 2 Columns
+        actPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         actPanel.setBackground(TOOLBAR_BG);
         actPanel.setMaximumSize(new Dimension(WIDTH, 100));
 
@@ -76,8 +70,6 @@ public class MapEditorTools extends JPanel {
         addToolBtn(actPanel, "Relative", "⟷ MOVE");
 
         add(actPanel);
-
-        // Push everything up
         add(Box.createVerticalGlue());
 
         setVisible(false);
@@ -95,11 +87,14 @@ public class MapEditorTools extends JPanel {
     private void addToolBtn(JPanel panel, String name, String label) {
         JToggleButton btn = new JToggleButton(label);
         btn.setToolTipText(name);
-        btn.setFont(EMOJI_FONT);
+
+        // --- USE CENTRAL FONT HERE ---
+        btn.setFont(UIConstants.EMOJI_FONT);
+
         btn.setForeground(Color.WHITE);
         btn.setBackground(INACTIVE_TOOL_COLOR);
         btn.setFocusPainted(false);
-        btn.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15)); // Padding
+        btn.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
         btn.addActionListener(e -> {
             for (JToggleButton b : buttons) {
