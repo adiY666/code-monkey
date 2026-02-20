@@ -85,8 +85,7 @@ public class AutoScrollPanel extends JPanel implements Scrollable {
         // 4. Handle Viewport (Disable scroll if fits screen)
         int viewW = 0;
         int viewH = 0;
-        if (getParent() instanceof JViewport) {
-            JViewport vp = (JViewport) getParent();
+        if (getParent() instanceof JViewport vp) {
             viewW = vp.getWidth();
             viewH = vp.getHeight();
         }

@@ -7,13 +7,15 @@ public class UIConstants {
 
     // --- FONTS ---
     // Try changing "Dialog" to "Segoe UI Emoji" or "Monospaced" if emojis are squares
-    public static final Font EMOJI_FONT = new Font("Dialog", Font.BOLD, 16);
+    public static final Font EMOJI_FONT = new Font("Segoe UI Emoji", Font.PLAIN, 16);
     public static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 28);
+    public static final Font NORMAL_FONT = new Font("Arial", Font.PLAIN, 16); // Added for new settings dialog
     public static final Font TEXT_FONT = new Font("Arial", Font.PLAIN, 14);
 
     // --- COLORS ---
     public static final Color BG_COLOR = new Color(44, 62, 80);
     public static final Color HEADER_COLOR = new Color(52, 73, 94);
+    public static final Color HEADER_BG = new Color(30, 30, 30); // Added for new components
 
     public static final Color BTN_GREEN = new Color(46, 204, 113);
     public static final Color BTN_RED = new Color(231, 76, 60);

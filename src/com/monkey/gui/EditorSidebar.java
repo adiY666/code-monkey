@@ -133,7 +133,6 @@ public class EditorSidebar extends JPanel {
 
         footer.add(runBtn);
         footer.add(restartBtn);
-        // Menu button removed
 
         add(footer, BorderLayout.SOUTH);
     }

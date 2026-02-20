@@ -6,7 +6,7 @@ import com.monkey.design.EditorDesign;
 import com.monkey.design.ItemDesign;
 import com.monkey.design.MonkeyDesign;
 import com.monkey.design.TerrainDesign;
-import com.monkey.tools.RulerTool; // Import the new tool
+import com.monkey.tools.RulerTool;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -15,8 +15,6 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -52,32 +50,25 @@ public class GameEnginePanel extends JPanel {
     public final RulerTool rulerTool;
     public int levelLimit = 0;
 
+    // --- THIS WAS MISSING: Handles the instant win logic ---
+    private Runnable onLevelComplete;
+
     public GameEnginePanel() {
         setBackground(new Color(34, 139, 34));
         setFocusable(true);
         setPreferredSize(new Dimension(800, 600));
 
-        // Initialize Tool
         this.rulerTool = new RulerTool(this);
 
-        // 1. TRACK MOUSE
-        addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                currentMouse = e.getPoint();
-                if(rulerTool.getMode() > 0) repaint();
-
-                if(!ghostTool.equals("none")) {
-                    updateGhost(ghostTool, e.getX(), e.getY());
-                }
-            }
-        });
-
-        // 2. ANIMATION LOOP
+        // ANIMATION LOOP (Mouse Tracking was moved to StudioMouseHandler)
         new Timer(30, e -> updateEffects()).start();
     }
 
-    // --- COMPATIBILITY METHODS (Fixes the Error) ---
+    // --- THIS WAS MISSING: Allows VisualMonkeyStudio to listen for wins ---
+    public void setOnLevelComplete(Runnable action) {
+        this.onLevelComplete = action;
+    }
+
     public void setRulerMode(int mode) {
         rulerTool.setMode(mode);
         repaint();
@@ -89,6 +80,12 @@ public class GameEnginePanel extends JPanel {
 
     public void handleRulerClick(int x, int y) {
         rulerTool.handleClick(x, y);
+    }
+
+    // --- THIS WAS MISSING: Fixes the Ruler tool visual line ---
+    public void updateMousePosition(Point p) {
+        this.currentMouse = p;
+        if(rulerTool.getMode() > 0) repaint();
     }
 
     // --- LOGIC ---
@@ -133,6 +130,11 @@ public class GameEnginePanel extends JPanel {
                 effects.add(new PopEffect(b.x, b.y));
                 it.remove();
                 repaint();
+
+                // INSTANT WIN TRIGGER
+                if(bananas.isEmpty() && onLevelComplete != null) {
+                    onLevelComplete.run();
+                }
             }
         }
     }
@@ -187,8 +189,6 @@ public class GameEnginePanel extends JPanel {
         }
 
         if(!ghostTool.equals("none")) EditorDesign.drawGhost(g2, ghostTool, ghostX, ghostY);
-
-        // DELEGATE RULER DRAWING
         rulerTool.draw(g2, currentMouse);
     }
 
@@ -199,11 +199,17 @@ public class GameEnginePanel extends JPanel {
     }
 
     public void addObject(String type, int x, int y) {
-        if(type.equals("Banana")) bananas.add(new GameObject(x, y));
-        else if(type.equals("Stone")) stones.add(new GameObject(x, y));
-        else if(type.equals("River")) rivers.add(new GameObject(x, y));
-        else if(type.equals("Turtle")) turtles.add(new Turtle(x, y, turtles.size(), 0));
-        else if(type.equals("Spawn")) { monkeyX = x; monkeyY = y; spawnSet = true; }
+        switch (type) {
+            case "Banana" -> bananas.add(new GameObject(x, y));
+            case "Stone" -> stones.add(new GameObject(x, y));
+            case "River" -> rivers.add(new GameObject(x, y));
+            case "Turtle" -> turtles.add(new Turtle(x, y, turtles.size(), 0));
+            case "Spawn" -> {
+                monkeyX = x;
+                monkeyY = y;
+                spawnSet = true;
+            }
+        }
         saveInitialState(); repaint();
     }
 
@@ -216,11 +222,14 @@ public class GameEnginePanel extends JPanel {
         saveInitialState(); repaint();
     }
 
-    public GameObject getGameObjectAt(int x, int y) {
+    // --- THIS WAS MISSING: Object instead of GameObject, returning "Monkey" string ---
+    public Object getGameObjectAt(int x, int y) {
         for(GameObject o : bananas) if(dist(o,x,y)<20) return o;
         for(GameObject o : stones) if(dist(o,x,y)<20) return o;
-        for(GameObject o : turtles) if(dist(o,x,y)<20) return o;
-        if(Math.hypot(monkeyX-x, monkeyY-y) < 20) return new GameObject(monkeyX, monkeyY);
+        for(Turtle o : turtles) if(dist(o,x,y)<20) return o;
+
+        if(Math.hypot(monkeyX-x, monkeyY-y) < 20) return "Monkey";
+
         return null;
     }
 

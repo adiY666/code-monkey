@@ -29,9 +29,6 @@ public class MapEditorTools extends JPanel {
     private final VisualMonkeyStudio context;
     private final List<JToggleButton> buttons = new ArrayList<>();
 
-    private final JPanel objPanel;
-    private final JPanel actPanel;
-
     public MapEditorTools(VisualMonkeyStudio context) {
         this.context = context;
 
@@ -48,7 +45,7 @@ public class MapEditorTools extends JPanel {
         add(Box.createVerticalStrut(30));
 
         addSectionLabel("PLACEMENTS");
-        objPanel = new JPanel(new GridLayout(0, 3, 10, 10));
+        JPanel objPanel = new JPanel(new GridLayout(0, 3, 10, 10));
         objPanel.setBackground(TOOLBAR_BG);
         objPanel.setMaximumSize(new Dimension(WIDTH, 200));
 
@@ -62,7 +59,7 @@ public class MapEditorTools extends JPanel {
         add(Box.createVerticalStrut(30));
 
         addSectionLabel("MANIPULATION");
-        actPanel = new JPanel(new GridLayout(0, 2, 10, 10));
+        JPanel actPanel = new JPanel(new GridLayout(0, 2, 10, 10));
         actPanel.setBackground(TOOLBAR_BG);
         actPanel.setMaximumSize(new Dimension(WIDTH, 100));
 

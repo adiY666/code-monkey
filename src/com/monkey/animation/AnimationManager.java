@@ -3,7 +3,6 @@ package com.monkey.animation;
 import com.monkey.gui.GameEnginePanel;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import javax.swing.Timer;
 
@@ -11,14 +10,13 @@ public class AnimationManager {
 
     private final GameEnginePanel panel;
     private final List<PopEffect> effects = new ArrayList<>();
-    private final Timer loop;
 
     public AnimationManager(GameEnginePanel panel) {
         this.panel = panel;
 
         // Run animation loop at ~30 FPS
-        this.loop = new Timer(30, e -> update());
-        this.loop.start();
+        Timer loop = new Timer(30, e -> update());
+        loop.start();
     }
 
     public void addPop(double x, double y) {
@@ -32,13 +30,7 @@ public class AnimationManager {
     private void update() {
         if (effects.isEmpty()) return;
 
-        Iterator<PopEffect> it = effects.iterator();
-        while (it.hasNext()) {
-            PopEffect p = it.next();
-            if (!p.update()) {
-                it.remove();
-            }
-        }
+        effects.removeIf(p -> !p.update());
         panel.repaint();
     }
 

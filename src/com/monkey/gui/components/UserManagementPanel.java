@@ -12,6 +12,7 @@ import java.awt.GridLayout;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -165,7 +166,7 @@ public class UserManagementPanel extends JPanel {
         File[] files = dir.listFiles((d, n) -> n.endsWith(".json"));
         if (files != null) {
             Arrays.sort(files);
-            for (File f : files) list.add(f);
+            Collections.addAll(list, files);
         }
     }
 }

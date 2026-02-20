@@ -21,6 +21,11 @@ public class StudioMouseHandler extends MouseAdapter {
         this.context = context;
     }
 
+    // --- GRID SNAP LOGIC (Jumps of 50) ---
+    private int snapToGrid(int value) {
+        return Math.round(value / 50.0f) * 50;
+    }
+
     @Override
     public void mousePressed(MouseEvent e) {
         handleMouse(e);
@@ -28,16 +33,25 @@ public class StudioMouseHandler extends MouseAdapter {
 
     @Override
     public void mouseDragged(MouseEvent e) {
-        if(context.isEditMode()) {
-            context.getEngine().updateGhost(context.getSelectedTool(), e.getX(), e.getY());
-        }
+        context.getEngine().updateMousePosition(e.getPoint());
+        updateGhostCursor(e);
         handleMouse(e);
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        context.getEngine().updateMousePosition(e.getPoint());
+        updateGhostCursor(e);
+    }
+
+    private void updateGhostCursor(MouseEvent e) {
         if(context.isEditMode()) {
-            context.getEngine().updateGhost(context.getSelectedTool(), e.getX(), e.getY());
+            String tool = context.getSelectedTool();
+            if (tool != null && !tool.equals("none") && !tool.equals("Rotate") && !tool.equals("Relative")) {
+                context.getEngine().updateGhost(tool, snapToGrid(e.getX()), snapToGrid(e.getY()));
+            } else {
+                context.getEngine().updateGhost(tool, e.getX(), e.getY());
+            }
         }
     }
 
@@ -54,7 +68,7 @@ public class StudioMouseHandler extends MouseAdapter {
 
         if(!context.isEditMode()) return;
 
-        // 2. DELETE Logic (Right Click)
+        // 2. DELETE Logic
         if(SwingUtilities.isRightMouseButton(e)) {
             context.getEngine().removeObject(e.getX(), e.getY());
             context.getAutoScrollWrapper().updateMapSize();
@@ -65,14 +79,38 @@ public class StudioMouseHandler extends MouseAdapter {
         String tool = context.getSelectedTool();
         boolean changed = false;
 
-        if(tool.equals("Rotate")) {
+        if("Rotate".equals(tool)) {
             handleRotate(e.getX(), e.getY());
             changed = true;
-        } else if(tool.equals("Relative")) {
+        } else if("Relative".equals(tool)) {
             handleRelative(e.getX(), e.getY());
             changed = true;
-        } else if(!tool.equals("none")) {
-            context.getEngine().addObject(tool, e.getX(), e.getY());
+        } else if(tool != null && !tool.equals("none")) {
+
+            int snapX = snapToGrid(e.getX());
+            int snapY = snapToGrid(e.getY());
+
+            // TURTLE WATER CHECK
+            if (tool.equals("Turtle")) {
+                boolean onWater = false;
+                for (GameObject river : context.getEngine().rivers) {
+                    if (Math.hypot(river.x - snapX, river.y - snapY) < 20) {
+                        onWater = true;
+                        break;
+                    }
+                }
+
+                if (!onWater) {
+                    JOptionPane.showMessageDialog(context,
+                            "Turtles can only be placed on River tiles!",
+                            "Invalid Placement",
+                            JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+            }
+
+            // SNAP TO GRID WHEN PLACING NEW OBJECTS
+            context.getEngine().addObject(tool, snapX, snapY);
             changed = true;
         }
 
@@ -90,7 +128,7 @@ public class StudioMouseHandler extends MouseAdapter {
                     else if(obj.equals("Monkey")) context.getEngine().monkeyAngle = a;
                     context.getEngine().repaint();
                 }
-            } catch(Exception ex) {}
+            } catch(Exception ignored) {} // Renamed to ignored
         }
     }
 
@@ -118,6 +156,7 @@ public class StudioMouseHandler extends MouseAdapter {
             try {
                 double dist = Double.parseDouble(d.getText());
                 double ang = Math.toRadians(Double.parseDouble(a.getText()));
+
                 double ax = (anchor instanceof GameObject) ? ((GameObject)anchor).x : context.getEngine().monkeyX;
                 double ay = (anchor instanceof GameObject) ? ((GameObject)anchor).y : context.getEngine().monkeyY;
 
@@ -129,7 +168,7 @@ public class StudioMouseHandler extends MouseAdapter {
 
                 context.getEngine().repaint();
                 context.getAutoScrollWrapper().updateMapSize();
-            } catch(Exception e) {}
+            } catch(Exception ignored) {} // Renamed to ignored
         }
     }
 }

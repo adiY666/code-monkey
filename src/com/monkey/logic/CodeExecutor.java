@@ -1,6 +1,6 @@
 package com.monkey.logic;
 
-import com.monkey.animation.AnimationManager; // Import the new animation package
+import com.monkey.animation.AnimationManager;
 import com.monkey.core.Turtle;
 import com.monkey.gui.GameEnginePanel;
 import java.util.function.IntConsumer;
@@ -10,7 +10,12 @@ public class CodeExecutor {
 
     private final GameEnginePanel engine;
     private final IntConsumer onComplete;
-    private volatile boolean isRunning = false;
+    private volatile boolean isRunning = false; // "volatile" ensures threads see the change immediately
+
+    // --- CONFIGURATION ---
+    // Higher number = Faster Monkey.
+    // 5.0 means it moves 5 pixels every 20ms (approx 250 pixels/second)
+    private static final double MOVEMENT_SPEED = 5.0;
 
     public CodeExecutor(GameEnginePanel engine, IntConsumer onComplete) {
         this.engine = engine;
@@ -21,7 +26,7 @@ public class CodeExecutor {
         if (isRunning) return;
         isRunning = true;
 
-        engine.resetLevel();
+        engine.resetLevel(); // Reset before running
 
         new Thread(() -> {
             String[] lines = code.split("\n");
@@ -32,6 +37,9 @@ public class CodeExecutor {
                 if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) continue;
 
                 try {
+                    // Stop if the user clicked "Stop"
+                    if (!isRunning) break;
+
                     boolean success = processLine(line);
                     if (success) {
                         count++;
@@ -54,22 +62,29 @@ public class CodeExecutor {
         }).start();
     }
 
+    public void stop() {
+        isRunning = false;
+    }
+
     private boolean processLine(String line) throws InterruptedException {
-        // Remove trailing semicolon
         if (line.endsWith(";")) line = line.substring(0, line.length() - 1);
 
-        // --- 1. SMOOTH MONKEY MOVE ---
+        // --- 1. CONSTANT SPEED MOVE ---
         if (line.startsWith("step(")) {
             int dist = parseValue(line);
-            // Use the Animation Package! (20 frames for smooth slide)
-            AnimationManager.smoothStep(engine, dist, 20);
+
+            // Calculate frames based on distance so speed is constant
+            // Math.max(1, ...) ensures we always have at least 1 frame of animation
+            int frames = (int) Math.max(1, Math.abs(dist) / MOVEMENT_SPEED);
+
+            AnimationManager.smoothStep(engine, dist, frames);
             return true;
         }
 
         // --- 2. SMOOTH TURN ---
         else if (line.startsWith("turn(")) {
             double angle = getTurnAngle(line);
-            // Use the Animation Package! (15 frames for smooth rotation)
+            // Rotations can stay fixed (15 frames) or you can apply the same logic here
             AnimationManager.smoothTurn(engine, angle, 15);
             return true;
         }
@@ -87,7 +102,6 @@ public class CodeExecutor {
         String cmd = line;
 
         try {
-            // Parse: turtles[0].step(50) -> index=0, cmd="step(50)"
             if(line.startsWith("turtles[")) {
                 index = Integer.parseInt(line.substring(8, line.indexOf("]")));
                 cmd = line.substring(line.indexOf("]") + 2);
@@ -98,7 +112,6 @@ public class CodeExecutor {
             if(index >= engine.turtles.size()) return false;
             Turtle t = engine.turtles.get(index);
 
-            // Execute Turtle Command
             if(cmd.startsWith("step(")) {
                 double dist = parseValue(cmd);
                 t.step(dist);

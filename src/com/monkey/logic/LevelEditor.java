@@ -47,6 +47,7 @@ public class LevelEditor {
             String cat = (String) categoryBox.getSelectedItem();
             engine.levelLimit = (int) limitSpinner.getValue();
 
+            assert cat != null;
             saveFile(name, cat, 1); // Default sort index 1
         }
     }

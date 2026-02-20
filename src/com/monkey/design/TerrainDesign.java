@@ -17,22 +17,22 @@ public class TerrainDesign {
     }
 
     // Generic logic to connect adjacent objects
-    private static void drawConnected(Graphics2D g2, List<GameObject> objs, Color c, int size) {
+    private static void drawConnected(Graphics2D g2, List<GameObject> objects, Color c, int size) {
         g2.setColor(c);
         int r = size / 2;
 
         // 1. Draw the "Body" of each object
-        for(GameObject o : objs) {
+        for(GameObject o : objects) {
             g2.fillOval((int)o.x - r, (int)o.y - r, size, size);
         }
 
         // 2. Draw "Connections" between close neighbors
         g2.setStroke(new BasicStroke(size, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
-        for(int i = 0; i < objs.size(); i++) {
-            GameObject a = objs.get(i);
-            for(int j = i + 1; j < objs.size(); j++) {
-                GameObject b = objs.get(j);
+        for(int i = 0; i < objects.size(); i++) {
+            GameObject a = objects.get(i);
+            for(int j = i + 1; j < objects.size(); j++) {
+                GameObject b = objects.get(j);
                 double dist = Math.hypot(a.x - b.x, a.y - b.y);
 
                 // If they are close (adjacent grid cells + wiggle room)

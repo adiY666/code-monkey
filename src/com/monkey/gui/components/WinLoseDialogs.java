@@ -1,6 +1,7 @@
 package com.monkey.gui.components;
 
 import com.monkey.gui.VisualMonkeyStudio;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;

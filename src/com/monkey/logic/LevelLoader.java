@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -91,7 +92,7 @@ public class LevelLoader {
             File[] files = dir.listFiles((d, name) -> name.endsWith(JSON_EXT));
             if(files != null) {
                 Arrays.sort(files);
-                for(File f : files) list.add(f);
+                Collections.addAll(list, files);
             }
         }
     }

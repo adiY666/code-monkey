@@ -18,10 +18,7 @@ import org.json.JSONObject;
 
 public class LoginPanel extends JPanel {
 
-    private final LevelMenu context;
-
     public LoginPanel(LevelMenu context) {
-        this.context = context;
         setBackground(new Color(44, 62, 80));
         setLayout(new GridBagLayout());
 

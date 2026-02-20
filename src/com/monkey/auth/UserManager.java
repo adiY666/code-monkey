@@ -13,7 +13,7 @@ public class UserManager {
 
     private static final String FILE_PATH = "users.json";
     private static UserManager instance;
-    private List<User> users;
+    private final List<User> users;
 
     // --- CHANGED SUPER USER TO "adi" ---
     public static final String SUPER_USER = "adi";

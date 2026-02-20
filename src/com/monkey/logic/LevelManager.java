@@ -76,7 +76,8 @@ public class LevelManager {
     public void openAdminSettings() {
         if(!checkDev()) return;
         String[] ops = {"Reorder Levels", "Delete Level"}; // Simplified
-        int c = JOptionPane.showOptionDialog(context, "Tool:", "Admin", 0, 1, null, ops, ops[0]);
+        int c = JOptionPane.showOptionDialog(context, "Tool:", "Admin",
+                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, ops, ops[0]);
         if(c == 0) editor.openReorderTool();
         // Delete tool logic can stay here or move to Editor
     }

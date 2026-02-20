@@ -21,15 +21,15 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
     private final AutoScrollPanel autoScrollWrapper;
     private final EditorSidebar sidebar;
     private final MapEditorTools mapTools;
-    private final StudioHeader header;
 
     private final CodeExecutor executor;
     private final LevelManager levelManager;
     private final User currentUser;
-    private final StudioMouseHandler mouseHandler;
 
     private String selectedTool = "none";
     private boolean isEditMode = false;
+
+    private boolean isWinning = false;
 
     public VisualMonkeyStudio(User user) {
         this.currentUser = user;
@@ -43,8 +43,11 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         // Initialize Logic
         this.levelManager = new LevelManager(this, engine, autoScrollWrapper);
         this.executor = new CodeExecutor(engine, this::checkWinCondition);
-        this.mouseHandler = new StudioMouseHandler(this);
-        this.header = new StudioHeader(this);
+        StudioMouseHandler mouseHandler = new StudioMouseHandler(this);
+        StudioHeader header = new StudioHeader(this);
+
+        // Listen for the exact moment the last banana is collected
+        this.engine.setOnLevelComplete(this::onInstantWin);
 
         // Setup Frame
         setTitle("Visual Code Monkey Studio 🍌 - " + user.getUsername());
@@ -74,6 +77,13 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         mapTools.setVisible(false);
         sidebar.setVisible(true);
         clearCode();
+    }
+
+    public VisualMonkeyStudio(User user, File file) {
+        this(user);
+        if (file != null) {
+            loadLevel(file);
+        }
     }
 
     // --- Public Methods ---
@@ -116,7 +126,13 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
 
     public void executeCode(String code) {
         engine.setRulerMode(0);
+        isWinning = false;
         executor.execute(code);
+    }
+
+    public void stopCode() {
+        executor.stop();
+        engine.resetLevel();
     }
 
     public void clearCode() {
@@ -131,7 +147,6 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         setVisible(true);
     }
 
-    // --- ADDED MISSING METHOD ---
     public void createNewLevel() {
         levelManager.createNewLevel();
         engine.setRulerMode(0);
@@ -142,12 +157,47 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         new LevelMenu(currentUser).setVisible(true);
     }
 
-    private void checkWinCondition(int linesUsed) {
-        if(engine.getBananaCount() == 0) {
+    // --- NEW: Helper method to ignore comments and blank spaces ---
+    private int getEffectiveLineCount() {
+        String code = sidebar.codeArea.getText();
+        if (code == null || code.trim().isEmpty()) return 0;
+
+        String[] lines = code.split("\n");
+        int count = 0;
+        for (String line : lines) {
+            String trimmed = line.trim();
+            // Only count the line if it's not empty and not a comment
+            if (!trimmed.isEmpty() && !trimmed.startsWith("#") && !trimmed.startsWith("//")) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private void onInstantWin() {
+        if (isWinning) return;
+        isWinning = true;
+
+        executor.stop();
+
+        SwingUtilities.invokeLater(() -> {
             int limit = levelManager.currentLevelLimit;
-            int stars = (linesUsed <= limit) ? 3 : (linesUsed > limit*2 ? 1 : 2);
+
+            // --- FIX: Use our new effective line counting method ---
+            int linesUsed = getEffectiveLineCount();
+
+            int stars = (limit == 0 || linesUsed <= limit) ? 3 : (linesUsed > limit * 1.5 ? 1 : 2);
+
             levelManager.saveProgress(stars);
             WinLoseDialogs.showWin(this, stars);
+        });
+    }
+
+    private void checkWinCondition(int linesUsed) {
+        if (isWinning) return;
+
+        if (engine.getBananaCount() == 0) {
+            onInstantWin();
         } else {
             WinLoseDialogs.showLose(this);
         }
@@ -156,7 +206,7 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
     @Override public void step(int d) {
         CountDownLatch latch = new CountDownLatch(1);
         SwingUtilities.invokeLater(() -> engine.animateMove(d, latch::countDown));
-        try { latch.await(); } catch (Exception e) {}
+        try { latch.await(); } catch (Exception ignored) {}
     }
 
     @Override public void turn(String d) { engine.rotateMonkey(d); }

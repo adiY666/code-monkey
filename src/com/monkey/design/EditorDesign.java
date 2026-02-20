@@ -17,9 +17,8 @@ public class EditorDesign {
             case "River": g2.setColor(new Color(52, 152, 219)); g2.fillOval(x - 25, y - 25, 50, 50); break;
             case "Turtle": g2.setColor(new Color(34, 139, 34)); g2.fillOval(x - 15, y - 15, 30, 30); break;
             case "Spawn":
-                g2.setColor(Color.MAGENTA);
-                g2.drawOval(x - 20, y - 20, 40, 40);
-                g2.drawLine(x, y, x + 20, y);
+                // --- FIX: Draw the actual Monkey as the ghost instead of a purple circle! ---
+                MonkeyDesign.draw(g2, x, y, 0);
                 break;
         }
         g2.setComposite(java.awt.AlphaComposite.SrcOver);
@@ -46,7 +45,6 @@ public class EditorDesign {
         int dy = endY - startY; // Screen Y goes down
 
         // Calculate Angle (Standard Math: Right=0, Up=90)
-        // We invert DY because screen Y is opposite to cartesian Y
         double angle = Math.toDegrees(Math.atan2(-dy, dx));
         if (angle < 0) angle += 360; // Keep it 0-360
 
