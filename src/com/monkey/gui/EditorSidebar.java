@@ -67,7 +67,7 @@ public class EditorSidebar extends JPanel {
 
     private void setupTabs(JTabbedPane tabs) {
         JPanel basic = createTabPanel(new Color(235, 245, 251));
-        addToolBtn(basic, "⬆ STEP(50)", "step(50);\n", BLUE);
+        addToolBtn(basic, "⬆ FORWARD(50)", "step(50);\n", BLUE);
         addToolBtn(basic, "⬇ BACK(-50)", "step(-50);\n", BLUE);
         addToolBtn(basic, "↰ LEFT", "turn('left');\n", BLUE);
         addToolBtn(basic, "↱ RIGHT", "turn('right');\n", BLUE);
@@ -81,8 +81,8 @@ public class EditorSidebar extends JPanel {
         addToolBtn(vars, "step(x)", "step(x);\n", GREEN);
 
         JPanel turtle = createTabPanel(new Color(224, 242, 241));
-        addToolBtn(turtle, "🐢 STEP(50)", "turtles[0].step(50);\n", TEAL);
-        addToolBtn(turtle, "🐢 STEP(50)", "turtles[0].step(-50);\n", TEAL);
+        addToolBtn(turtle, "🐢 FORWARD(50)", "turtles[0].step(50);\n", TEAL);
+        addToolBtn(turtle, "🐢 BACK(50)", "turtles[0].step(-50);\n", TEAL);
         addToolBtn(turtle, "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL);
         addToolBtn(turtle, "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL);
 

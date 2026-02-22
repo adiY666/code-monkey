@@ -50,7 +50,7 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         this.engine.setOnLevelComplete(this::onInstantWin);
 
         // Setup Frame
-        setTitle("Visual Code Monkey Studio 🍌 - " + user.getUsername());
+        setTitle("Visual Code Monkey Studio \uD83C\uDF4C - " + user.getUsername());
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -133,6 +133,8 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
     public void stopCode() {
         executor.stop();
         engine.resetLevel();
+        // --- FIX: Automatically reset the Run/Stop button visually! ---
+        sidebar.setRunState(false);
     }
 
     public void clearCode() {
@@ -157,7 +159,6 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         new LevelMenu(currentUser).setVisible(true);
     }
 
-    // --- NEW: Helper method to ignore comments and blank spaces ---
     private int getEffectiveLineCount() {
         String code = sidebar.codeArea.getText();
         if (code == null || code.trim().isEmpty()) return 0;
@@ -166,7 +167,6 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         int count = 0;
         for (String line : lines) {
             String trimmed = line.trim();
-            // Only count the line if it's not empty and not a comment
             if (!trimmed.isEmpty() && !trimmed.startsWith("#") && !trimmed.startsWith("//")) {
                 count++;
             }
@@ -179,13 +179,12 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
         isWinning = true;
 
         executor.stop();
+        // --- FIX: Reset the Run/Stop button when the monkey wins! ---
+        sidebar.setRunState(false);
 
         SwingUtilities.invokeLater(() -> {
             int limit = levelManager.currentLevelLimit;
-
-            // --- FIX: Use our new effective line counting method ---
             int linesUsed = getEffectiveLineCount();
-
             int stars = (limit == 0 || linesUsed <= limit) ? 3 : (linesUsed > limit * 1.5 ? 1 : 2);
 
             levelManager.saveProgress(stars);
@@ -195,6 +194,9 @@ public class VisualMonkeyStudio extends JFrame implements ActionInterface {
 
     private void checkWinCondition(int linesUsed) {
         if (isWinning) return;
+
+        // --- FIX: Reset the Run/Stop button when the code naturally finishes running! ---
+        sidebar.setRunState(false);
 
         if (engine.getBananaCount() == 0) {
             onInstantWin();

@@ -1,6 +1,7 @@
 package com.monkey.animation;
 
 import com.monkey.gui.GameEnginePanel;
+import com.monkey.logic.CollisionChecker;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,19 +36,40 @@ public class AnimationManager {
     }
 
     public void drawEffects(Graphics2D g2) {
-        // Clone list to avoid ConcurrentModificationException during drawing
         List<PopEffect> currentEffects = new ArrayList<>(effects);
         for (PopEffect p : currentEffects) {
             p.draw(g2);
         }
     }
 
-    // Static helper for smooth movement (Logic from CodeExecutor)
     public static void smoothStep(GameEnginePanel engine, double totalDist, int frames) throws InterruptedException {
         double stepPerFrame = totalDist / frames;
+
+        // Calculate the direction the monkey is facing
+        double rad = Math.toRadians(engine.monkeyAngle);
+        double dx = stepPerFrame * Math.cos(rad);
+        double dy = -stepPerFrame * Math.sin(rad);
+
         for(int i = 0; i < frames; i++) {
-            engine.step(stepPerFrame);
-            engine.checkCollisions();
+            double nextX = engine.monkeyX + dx;
+            double nextY = engine.monkeyY + dy;
+
+            // --- CHANGED: If we hit a stone, just stop moving for this step command! ---
+            if (CollisionChecker.isStoneCollision(engine, nextX, nextY)) {
+                break;
+            }
+
+            // Water is still deadly! It throws an exception to fail the level cleanly.
+            if (CollisionChecker.isWaterCollision(engine, nextX, nextY)) {
+                throw new RuntimeException("Monkey fell in the water!");
+            }
+
+            // If it survived, update position
+            engine.monkeyX = nextX;
+            engine.monkeyY = nextY;
+
+            engine.checkCollisions(); // Eat bananas
+            engine.repaint();
             Thread.sleep(20);
         }
     }
