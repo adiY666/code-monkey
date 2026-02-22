@@ -7,6 +7,7 @@ import com.monkey.design.ItemDesign;
 import com.monkey.design.MonkeyDesign;
 import com.monkey.design.TerrainDesign;
 import com.monkey.tools.RulerTool;
+import com.monkey.tools.SightTool;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -18,6 +19,7 @@ import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import org.json.JSONArray;
@@ -48,9 +50,9 @@ public class GameEnginePanel extends JPanel {
     private int ghostX, ghostY;
 
     public final RulerTool rulerTool;
+    public final SightTool sightTool; // --- ADDED SIGHT TOOL ---
     public int levelLimit = 0;
 
-    // --- THIS WAS MISSING: Handles the instant win logic ---
     private Runnable onLevelComplete;
 
     public GameEnginePanel() {
@@ -59,12 +61,11 @@ public class GameEnginePanel extends JPanel {
         setPreferredSize(new Dimension(800, 600));
 
         this.rulerTool = new RulerTool(this);
+        this.sightTool = new SightTool(this); // --- INITIALIZED SIGHT TOOL ---
 
-        // ANIMATION LOOP (Mouse Tracking was moved to StudioMouseHandler)
         new Timer(30, e -> updateEffects()).start();
     }
 
-    // --- THIS WAS MISSING: Allows VisualMonkeyStudio to listen for wins ---
     public void setOnLevelComplete(Runnable action) {
         this.onLevelComplete = action;
     }
@@ -82,10 +83,15 @@ public class GameEnginePanel extends JPanel {
         rulerTool.handleClick(x, y);
     }
 
-    // --- THIS WAS MISSING: Fixes the Ruler tool visual line ---
     public void updateMousePosition(Point p) {
         this.currentMouse = p;
         if(rulerTool.getMode() > 0) repaint();
+    }
+
+    // --- NEW: Activate Sight Tool via Button ---
+    public void toggleSightTool() {
+        sightTool.toggle();
+        repaint();
     }
 
     // --- LOGIC ---
@@ -131,7 +137,6 @@ public class GameEnginePanel extends JPanel {
                 it.remove();
                 repaint();
 
-                // INSTANT WIN TRIGGER
                 if(bananas.isEmpty() && onLevelComplete != null) {
                     onLevelComplete.run();
                 }
@@ -180,6 +185,9 @@ public class GameEnginePanel extends JPanel {
         for(Turtle t : turtles) t.draw(g2);
         for(GameObject b : bananas) ItemDesign.drawBanana(g2, b.x, b.y);
 
+        // --- DRAW SIGHT CONE BEHIND THE MONKEY ---
+        sightTool.draw(g2);
+
         MonkeyDesign.draw(g2, monkeyX, monkeyY, monkeyAngle);
 
         for(PopEffect p : effects) {
@@ -222,7 +230,6 @@ public class GameEnginePanel extends JPanel {
         saveInitialState(); repaint();
     }
 
-    // --- THIS WAS MISSING: Object instead of GameObject, returning "Monkey" string ---
     public Object getGameObjectAt(int x, int y) {
         for(GameObject o : bananas) if(dist(o,x,y)<20) return o;
         for(GameObject o : stones) if(dist(o,x,y)<20) return o;

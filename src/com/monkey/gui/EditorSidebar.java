@@ -30,7 +30,6 @@ public class EditorSidebar extends JPanel {
     public final JTextArea codeArea;
     private final VisualMonkeyStudio studio;
 
-    // --- ADDED: Make runBtn a class variable so we can change its text/color later ---
     private JButton runBtn;
 
     public EditorSidebar(VisualMonkeyStudio studio) {
@@ -66,30 +65,39 @@ public class EditorSidebar extends JPanel {
     }
 
     private void setupTabs(JTabbedPane tabs) {
-        JPanel basic = createTabPanel(new Color(235, 245, 251));
-        addToolBtn(basic, "⬆ FORWARD(50)", "step(50);\n", BLUE);
-        addToolBtn(basic, "⬇ BACK(-50)", "step(-50);\n", BLUE);
-        addToolBtn(basic, "↰ LEFT", "turn('left');\n", BLUE);
-        addToolBtn(basic, "↱ RIGHT", "turn('right');\n", BLUE);
+        // Basic Tab
+        JPanel basicInner = createInnerPanel(new Color(235, 245, 251));
+        addToolBtn(basicInner, "⬆ STEP(50)", "step(50);\n", BLUE);
+        addToolBtn(basicInner, "⬇ BACK(-50)", "step(-50);\n", BLUE);
+        addToolBtn(basicInner, "↰ LEFT", "turn('left');\n", BLUE);
+        addToolBtn(basicInner, "↱ RIGHT", "turn('right');\n", BLUE);
 
-        JPanel loops = createTabPanel(new Color(245, 238, 248));
-        addToolBtn(loops, "🔄 REPEAT 3", "for(int i = 0; i < 3; i++){\n\n}\n", PURPLE);
-        addToolBtn(loops, "❓ WHILE", "while(x < 300){\n\n}\n", PURPLE);
+        // Loops Tab
+        JPanel loopsInner = createInnerPanel(new Color(245, 238, 248));
+        addToolBtn(loopsInner, "🔄 REPEAT 3", "for(int i = 0; i < 3; i++){\n\n}\n", PURPLE);
+        addToolBtn(loopsInner, "❓ WHILE", "while(x < 300){\n\n}\n", PURPLE);
 
-        JPanel vars = createTabPanel(new Color(233, 247, 239));
-        addToolBtn(vars, "int x = 0", "int x = 0;\n", GREEN);
-        addToolBtn(vars, "step(x)", "step(x);\n", GREEN);
+        // Vars & Vision Tab
+        JPanel varsInner = createInnerPanel(new Color(233, 247, 239));
+        addToolBtn(varsInner, "int x = 0", "int x = 0;\n", GREEN);
+        addToolBtn(varsInner, "step(x)", "step(x);\n", GREEN);
+        addToolBtn(varsInner, "📏 DISTANCE", "distanceTo('banana')", GREEN);
+        addToolBtn(varsInner, "📐 ANGLE TO", "angleTo('banana')", GREEN);
+        addToolBtn(varsInner, "👆 TOUCHING", "isTouched('banana')", GREEN);
+        addToolBtn(varsInner, "👁 SIGHT", "isSeeing('banana')", GREEN);
 
-        JPanel turtle = createTabPanel(new Color(224, 242, 241));
-        addToolBtn(turtle, "🐢 FORWARD(50)", "turtles[0].step(50);\n", TEAL);
-        addToolBtn(turtle, "🐢 BACK(50)", "turtles[0].step(-50);\n", TEAL);
-        addToolBtn(turtle, "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL);
-        addToolBtn(turtle, "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL);
+        // Turtle Tab
+        JPanel turtleInner = createInnerPanel(new Color(224, 242, 241));
+        addToolBtn(turtleInner, "🐢 STEP(50)", "turtles[0].step(50);\n", TEAL);
+        addToolBtn(turtleInner, "🐢 STEP(50)", "turtles[0].step(-50);\n", TEAL);
+        addToolBtn(turtleInner, "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL);
+        addToolBtn(turtleInner, "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL);
 
-        tabs.addTab("Basic", basic);
-        tabs.addTab("Loops", loops);
-        tabs.addTab("Vars", vars);
-        tabs.addTab("Turtle", turtle);
+        // Wrap the panels in scrolling wrappers and add to tabs!
+        tabs.addTab("Basic", createScroll(basicInner, new Color(235, 245, 251)));
+        tabs.addTab("Loops", createScroll(loopsInner, new Color(245, 238, 248)));
+        tabs.addTab("Vars", createScroll(varsInner, new Color(233, 247, 239)));
+        tabs.addTab("Turtle", createScroll(turtleInner, new Color(224, 242, 241)));
 
         tabs.setBackgroundAt(0, BLUE);
         tabs.setBackgroundAt(1, PURPLE);
@@ -98,11 +106,25 @@ public class EditorSidebar extends JPanel {
         for(int i = 0; i < 4; i++) tabs.setForegroundAt(i, Color.WHITE);
     }
 
-    private JPanel createTabPanel(Color bg) {
-        JPanel p = new JPanel(new GridLayout(0, 1, 2, 2));
+    // --- CHANGED: Sets up a standard inner grid for buttons ---
+    private JPanel createInnerPanel(Color bg) {
+        JPanel p = new JPanel(new GridLayout(0, 1, 5, 5));
         p.setBackground(bg);
         p.setBorder(new EmptyBorder(5, 5, 5, 5));
         return p;
+    }
+
+    // --- NEW: Wraps the inner panel in a JScrollPane so it doesn't stretch and can scroll ---
+    private JScrollPane createScroll(JPanel inner, Color bg) {
+        JPanel wrapper = new JPanel(new BorderLayout());
+        wrapper.setBackground(bg);
+        wrapper.add(inner, BorderLayout.NORTH); // Keeps the buttons at the top
+
+        JScrollPane scroll = new JScrollPane(wrapper);
+        scroll.setBorder(null);
+        scroll.setPreferredSize(new Dimension(WIDTH, 180)); // Height of the scroll area
+        scroll.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling speed
+        return scroll;
     }
 
     private void addToolBtn(JPanel p, String label, String code, Color color) {
@@ -112,6 +134,9 @@ public class EditorSidebar extends JPanel {
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
+
+        // --- CHANGED: Force every button to always be exactly 40 pixels tall! ---
+        b.setPreferredSize(new Dimension(0, 40));
 
         b.addActionListener(e -> {
             codeArea.insert(code, codeArea.getCaretPosition());
@@ -128,7 +153,6 @@ public class EditorSidebar extends JPanel {
         runBtn = new JButton("▶ RUN CODE");
         configBtn(runBtn, UIConstants.BTN_GREEN);
 
-        // --- ADDED: Toggle logic between Run and Stop ---
         runBtn.addActionListener(e -> {
             if (runBtn.getText().equals("▶ RUN CODE")) {
                 setRunState(true);
@@ -142,7 +166,6 @@ public class EditorSidebar extends JPanel {
         JButton restartBtn = new JButton("↺ TRY AGAIN");
         configBtn(restartBtn, UIConstants.BTN_ORANGE);
 
-        // --- ADDED: Force stop code and reset the Run button visually ---
         restartBtn.addActionListener(e -> {
             studio.stopCode();
             studio.loadLevel(studio.getCurrentFile());
@@ -155,7 +178,6 @@ public class EditorSidebar extends JPanel {
         add(footer, BorderLayout.SOUTH);
     }
 
-    // --- ADDED: Helper method to easily change the button's appearance ---
     public void setRunState(boolean isRunning) {
         if (isRunning) {
             runBtn.setText("⏹ STOP CODE");

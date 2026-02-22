@@ -14,11 +14,15 @@ public class CommandProcessor {
         this.engine = engine;
     }
 
+    public GameEnginePanel getEngine() {
+        return engine;
+    }
+
     public boolean process(String line, Map<String, Integer> vars) throws InterruptedException {
         if (line.endsWith(";")) line = line.substring(0, line.length() - 1);
 
         if (line.startsWith("step(")) {
-            int dist = ExpressionEvaluator.parseValue(line, vars);
+            int dist = ExpressionEvaluator.parseValue(engine, line, vars);
             int frames = (int) Math.max(1, Math.abs(dist) / MOVEMENT_SPEED);
             AnimationManager.smoothStep(engine, dist, frames);
             return true;
@@ -26,6 +30,13 @@ public class CommandProcessor {
         else if (line.startsWith("turn(")) {
             double angle = getTurnAngle(line, vars);
             AnimationManager.smoothTurn(engine, angle, 15);
+            return true;
+        }
+        // --- NEW: showSight command! ---
+        else if (line.startsWith("showSight(")) {
+            String target = line.substring(line.indexOf("(") + 1, line.lastIndexOf(")")).trim();
+            boolean seesIt = ExpressionEvaluator.isSeeing(engine, target);
+            AnimationManager.showSightAnim(engine, seesIt);
             return true;
         }
         else if (line.startsWith("turtles[") || line.startsWith("turtle.")) {
@@ -51,7 +62,7 @@ public class CommandProcessor {
             Turtle t = engine.turtles.get(index);
 
             if (cmd.startsWith("step(")) {
-                int dist = ExpressionEvaluator.parseValue(cmd, vars);
+                int dist = ExpressionEvaluator.parseValue(engine, cmd, vars);
                 int frames = (int) Math.max(1, Math.abs(dist) / MOVEMENT_SPEED);
                 com.monkey.animation.TurtleAnimation.smoothStep(engine, t, dist, frames);
             } else if (cmd.startsWith("turn(")) {
@@ -68,6 +79,6 @@ public class CommandProcessor {
     private double getTurnAngle(String line, Map<String, Integer> vars) {
         if (line.contains("'left'") || line.contains("\"left\"")) return 90;
         else if (line.contains("'right'") || line.contains("\"right\"")) return -90;
-        else return ExpressionEvaluator.parseValue(line, vars);
+        else return ExpressionEvaluator.parseValue(engine, line, vars);
     }
 }

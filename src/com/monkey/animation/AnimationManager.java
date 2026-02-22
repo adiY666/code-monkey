@@ -14,8 +14,6 @@ public class AnimationManager {
 
     public AnimationManager(GameEnginePanel panel) {
         this.panel = panel;
-
-        // Run animation loop at ~30 FPS
         Timer loop = new Timer(30, e -> update());
         loop.start();
     }
@@ -30,7 +28,6 @@ public class AnimationManager {
 
     private void update() {
         if (effects.isEmpty()) return;
-
         effects.removeIf(p -> !p.update());
         panel.repaint();
     }
@@ -44,8 +41,6 @@ public class AnimationManager {
 
     public static void smoothStep(GameEnginePanel engine, double totalDist, int frames) throws InterruptedException {
         double stepPerFrame = totalDist / frames;
-
-        // Calculate the direction the monkey is facing
         double rad = Math.toRadians(engine.monkeyAngle);
         double dx = stepPerFrame * Math.cos(rad);
         double dy = -stepPerFrame * Math.sin(rad);
@@ -54,21 +49,18 @@ public class AnimationManager {
             double nextX = engine.monkeyX + dx;
             double nextY = engine.monkeyY + dy;
 
-            // --- CHANGED: If we hit a stone, just stop moving for this step command! ---
             if (CollisionChecker.isStoneCollision(engine, nextX, nextY)) {
                 break;
             }
 
-            // Water is still deadly! It throws an exception to fail the level cleanly.
             if (CollisionChecker.isWaterCollision(engine, nextX, nextY)) {
                 throw new RuntimeException("Monkey fell in the water!");
             }
 
-            // If it survived, update position
             engine.monkeyX = nextX;
             engine.monkeyY = nextY;
 
-            engine.checkCollisions(); // Eat bananas
+            engine.checkCollisions();
             engine.repaint();
             Thread.sleep(20);
         }
@@ -81,5 +73,23 @@ public class AnimationManager {
             engine.repaint();
             Thread.sleep(20);
         }
+    }
+
+    // --- NEW: Sight Animation! ---
+    public static void showSightAnim(GameEnginePanel engine, boolean found) throws InterruptedException {
+        if (found) {
+            // Found it! Happy little jump
+            double origY = engine.monkeyY;
+            for(int i = 0; i < 4; i++) { engine.monkeyY -= 4; engine.repaint(); Thread.sleep(15); }
+            for(int i = 0; i < 4; i++) { engine.monkeyY += 4; engine.repaint(); Thread.sleep(15); }
+            engine.monkeyY = origY;
+            engine.repaint();
+        } else {
+            // Didn't find it! Confused look left and right
+            smoothTurn(engine, -30, 6);
+            smoothTurn(engine, 60, 12);
+            smoothTurn(engine, -30, 6);
+        }
+        Thread.sleep(100); // Tiny pause before next line of code
     }
 }

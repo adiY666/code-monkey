@@ -52,10 +52,14 @@ public class StudioHeader extends JPanel {
 
         add(Box.createHorizontalGlue());
 
-        // 3. RULER TOOLS
+        // 3. MEASUREMENT & SIGHT TOOLS
         addBtn("📏 OBJ RULER", UIConstants.BTN_RULER, e -> context.getEngine().setRulerMode(1));
         add(Box.createRigidArea(new Dimension(5, 0)));
         addBtn("📐 FREE RULER", UIConstants.BTN_RULER, e -> context.getEngine().setRulerMode(2));
+
+        // --- ADDED SIGHT TOOL BUTTON ---
+        add(Box.createRigidArea(new Dimension(5, 0)));
+        addBtn("👁 SHOW SIGHT", UIConstants.BTN_RULER, e -> context.getEngine().toggleSightTool());
 
         if(user.isDeveloper()) {
             add(Box.createRigidArea(new Dimension(10, 0)));

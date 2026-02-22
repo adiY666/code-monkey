@@ -29,7 +29,6 @@ public class Interpreter {
             String line = lines.get(i).trim();
             if (line.isEmpty() || line.startsWith("#") || line.startsWith("//")) continue;
 
-            // --- LOOPS (FOR & WHILE) ---
             if (line.startsWith("for") || line.startsWith("while")) {
                 int openBraces = 0;
                 if (line.contains("{")) openBraces++;
@@ -55,7 +54,8 @@ public class Interpreter {
                         count += executeBlock(innerBlock, vars);
                     }
                 } else if (line.startsWith("while")) {
-                    while (ExpressionEvaluator.evaluateCondition(line, vars)) {
+                    // --- PASS ENGINE HERE ---
+                    while (ExpressionEvaluator.evaluateCondition(processor.getEngine(), line, vars)) {
                         if (!isRunning) break;
                         count += executeBlock(innerBlock, vars);
                     }
@@ -65,13 +65,11 @@ public class Interpreter {
                 continue;
             }
 
-            // --- VARIABLES & MATH (e.g., int x = 0; or x += 5;) ---
             if ((line.startsWith("int ") || line.contains("=")) && !line.contains("==") && !line.contains("<=") && !line.contains(">=")) {
                 assignVariable(line, vars);
                 continue;
             }
 
-            // --- NORMAL COMMANDS ---
             boolean success = processor.process(line, vars);
             if (success) {
                 count++;
@@ -81,10 +79,9 @@ public class Interpreter {
         return count;
     }
 
-    private void assignVariable(String line, Map<String, Integer> vars) {
+    private void assignVariable(String line, Map<String, Integer> vars) throws InterruptedException {
         line = line.replace("int ", "").replace(";", "").trim();
 
-        // Find which operator is being used
         String operator = "=";
         if (line.contains("+=")) operator = "+=";
         else if (line.contains("-=")) operator = "-=";
@@ -98,12 +95,12 @@ public class Interpreter {
             String varName = line.substring(0, opIndex).trim();
             String expr = line.substring(opIndex + operator.length()).trim();
 
-            int evalResult = ExpressionEvaluator.evaluateMath(expr, vars);
+            int evalResult = ExpressionEvaluator.evaluateMath(processor.getEngine(), expr, vars);
 
             if (operator.equals("=")) {
                 vars.put(varName, evalResult);
             } else {
-                int currentVal = ExpressionEvaluator.getVal(varName, vars);
+                int currentVal = ExpressionEvaluator.getVal(processor.getEngine(), varName, vars);
                 switch(operator) {
                     case "+=": vars.put(varName, currentVal + evalResult); break;
                     case "-=": vars.put(varName, currentVal - evalResult); break;
