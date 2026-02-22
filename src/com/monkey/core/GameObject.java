@@ -1,6 +1,7 @@
 package com.monkey.core;
 
-public class GameObject {
+public abstract class GameObject implements IGameObject {
+
     public double x;
     public double y;
 
@@ -8,4 +9,14 @@ public class GameObject {
         this.x = x;
         this.y = y;
     }
+
+    @Override
+    public double getX() { return x; }
+
+    @Override
+    public double getY() { return y; }
+
+    // Every specific object that extends this MUST define its type!
+    @Override
+    public abstract String getType();
 }

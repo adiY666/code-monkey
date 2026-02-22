@@ -1,7 +1,6 @@
 package com.monkey.gui;
 
-import com.monkey.core.GameObject;
-import com.monkey.core.Turtle;
+import com.monkey.core.*;
 import com.monkey.design.EditorDesign;
 import com.monkey.design.ItemDesign;
 import com.monkey.design.MonkeyDesign;
@@ -19,7 +18,6 @@ import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import org.json.JSONArray;
@@ -208,9 +206,9 @@ public class GameEnginePanel extends JPanel {
 
     public void addObject(String type, int x, int y) {
         switch (type) {
-            case "Banana" -> bananas.add(new GameObject(x, y));
-            case "Stone" -> stones.add(new GameObject(x, y));
-            case "River" -> rivers.add(new GameObject(x, y));
+            case "Banana" -> bananas.add(new Banana(x, y));
+            case "Stone" -> stones.add(new Stone(x, y));
+            case "River" -> rivers.add(new River(x, y));
             case "Turtle" -> turtles.add(new Turtle(x, y, turtles.size(), 0));
             case "Spawn" -> {
                 monkeyX = x;
@@ -240,7 +238,10 @@ public class GameEnginePanel extends JPanel {
         return null;
     }
 
-    private double dist(GameObject o, int x, int y) { return Math.hypot(o.x - x, o.y - y); }
+    private double dist(IGameObject o, int x, int y) {
+        return Math.hypot(o.getX() - x, o.getY() - y);
+    }
+
     public int getBananaCount() { return bananas.size(); }
 
     public JSONObject getLayoutAsJson() {

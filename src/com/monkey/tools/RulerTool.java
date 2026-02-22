@@ -110,6 +110,20 @@ public class RulerTool {
         }
 
         // Calculate Distance
+        String text = getString(targetX, targetY);
+
+        g2.setFont(new Font("Consolas", Font.BOLD, 12));
+        int textWidth = g2.getFontMetrics().stringWidth(text) + 10;
+
+        // Background box for readability
+        g2.setColor(new Color(0, 0, 0, 180));
+        g2.fillRect((int) startX + 10, (int) startY - 25, textWidth, 20);
+
+        g2.setColor(Color.WHITE);
+        g2.drawString(text, (int) startX + 15, (int) startY - 11);
+    }
+
+    private String getString(double targetX, double targetY) {
         double dx = targetX - startX;
         double dy = targetY - startY;
         int distance = (int) Math.hypot(dx, dy);
@@ -118,20 +132,9 @@ public class RulerTool {
         double angle = Math.toDegrees(Math.atan2(-dy, dx));
         if (angle < 0) angle += 360;
 
-        // Draw Measurement Text box
-        String text = String.format("Dist: %d | Ang: %d°", distance, (int) angle);
-        int midX = (int) (startX + targetX) / 2;
-        int midY = (int) (startY + targetY) / 2;
-
-        g2.setFont(new Font("Arial", Font.BOLD, 14));
-        int textWidth = g2.getFontMetrics().stringWidth(text);
-
-        // Background for text
-        g2.setColor(new Color(0, 0, 0, 180));
-        g2.fillRoundRect(midX - textWidth / 2 - 5, midY - 20, textWidth + 10, 24, 8, 8);
-
-        // Text
-        g2.setColor(Color.WHITE);
-        g2.drawString(text, midX - textWidth / 2, midY - 3);
+        // --- FIX IS HERE ---
+        // distance, (int)dx, and (int)-dy are passed to %d
+        // angle is passed to %.0f
+        return String.format("Dist: %d | X:%d Y:%d | ∠ %.0f°", distance, (int) dx, (int) -dy, angle);
     }
 }

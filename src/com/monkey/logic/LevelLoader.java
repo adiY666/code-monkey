@@ -1,6 +1,9 @@
 package com.monkey.logic;
 
+import com.monkey.core.Banana;
 import com.monkey.core.GameObject;
+import com.monkey.core.River;
+import com.monkey.core.Stone;
 import com.monkey.core.Turtle;
 import com.monkey.gui.GameEnginePanel;
 import java.io.File;
@@ -39,9 +42,11 @@ public class LevelLoader {
         engine.levelLimit = json.optInt(KEY_TARGET_LINES, 5);
 
         JSONObject layout = json.getJSONObject(KEY_LAYOUT);
-        parseObj(layout.getJSONArray("bananas"), engine.bananas);
-        parseObj(layout.getJSONArray("stones"), engine.stones);
-        parseObj(layout.getJSONArray("rivers"), engine.rivers);
+
+        // --- CHANGED: Now passes the specific type to spawn ---
+        parseObj(layout.getJSONArray("bananas"), engine.bananas, "Banana");
+        parseObj(layout.getJSONArray("stones"), engine.stones, "Stone");
+        parseObj(layout.getJSONArray("rivers"), engine.rivers, "River");
 
         JSONArray tArr = layout.getJSONArray("turtles");
         for(int i = 0; i < tArr.length(); i++) {
@@ -50,7 +55,6 @@ public class LevelLoader {
             engine.turtles.add(new Turtle(t.getDouble(0), t.getDouble(1), t.getInt(2), t.getInt(3), startAngle));
         }
 
-        // --- FIX: Tell the engine to remember the turtles so they don't vanish on reset! ---
         engine.saveInitialState();
     }
 
@@ -74,9 +78,17 @@ public class LevelLoader {
         return new JSONObject(content);
     }
 
-    private static void parseObj(JSONArray arr, List<GameObject> list) {
-        for(int i = 0; i < arr.length(); i++)
-            list.add(new GameObject(arr.getJSONArray(i).getDouble(0), arr.getJSONArray(i).getDouble(1)));
+    // --- CHANGED: Now spawns specific objects ---
+    private static void parseObj(JSONArray arr, List<GameObject> list, String type) {
+        for(int i = 0; i < arr.length(); i++) {
+            double x = arr.getJSONArray(i).getDouble(0);
+            double y = arr.getJSONArray(i).getDouble(1);
+            switch (type) {
+                case "Banana" -> list.add(new Banana(x, y));
+                case "Stone" -> list.add(new Stone(x, y));
+                case "River" -> list.add(new River(x, y));
+            }
+        }
     }
 
     public static List<File> getAllLevels() {

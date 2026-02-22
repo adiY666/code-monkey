@@ -1,7 +1,9 @@
 package com.monkey.logic;
 
 import com.monkey.gui.GameEnginePanel;
-import com.monkey.core.Turtle;
+import com.monkey.core.IGameObject;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class ExpressionEvaluator {
@@ -114,32 +116,27 @@ public class ExpressionEvaluator {
     }
 
     // ==========================================
-    //   HELPER SENSING AND VISION METHODS
+    //   DYNAMIC VISION & SENSING METHODS
     // ==========================================
+
+    private static List<IGameObject> getAllObjects(GameEnginePanel engine) {
+        List<IGameObject> all = new ArrayList<>();
+        all.addAll(engine.bananas);
+        all.addAll(engine.stones);
+        all.addAll(engine.rivers);
+        all.addAll(engine.turtles);
+        return all;
+    }
 
     private static double getDistanceTo(GameEnginePanel engine, String type) {
         type = type.replaceAll("['\"]", "").toLowerCase();
         double minDst = -1;
 
-        switch (type) {
-            case "banana" -> minDst = getClosest(engine.monkeyX, engine.monkeyY, engine.bananas);
-            case "stone" -> minDst = getClosest(engine.monkeyX, engine.monkeyY, engine.stones);
-            case "river" -> minDst = getClosest(engine.monkeyX, engine.monkeyY, engine.rivers);
-            case "turtle" -> {
-                for (Turtle t : engine.turtles) {
-                    double dst = Math.hypot(t.x - engine.monkeyX, t.y - engine.monkeyY);
-                    if (minDst == -1 || dst < minDst) minDst = dst;
-                }
+        for (IGameObject obj : getAllObjects(engine)) {
+            if (obj.getType().equalsIgnoreCase(type)) {
+                double dst = Math.hypot(obj.getX() - engine.monkeyX, obj.getY() - engine.monkeyY);
+                if (minDst == -1 || dst < minDst) minDst = dst;
             }
-        }
-        return minDst;
-    }
-
-    private static double getClosest(double mx, double my, java.util.List<com.monkey.core.GameObject> list) {
-        double minDst = -1;
-        for (com.monkey.core.GameObject obj : list) {
-            double dst = Math.hypot(obj.x - mx, obj.y - my);
-            if (minDst == -1 || dst < minDst) minDst = dst;
         }
         return minDst;
     }
@@ -149,29 +146,12 @@ public class ExpressionEvaluator {
         double tx = -1, ty = -1;
         double minDst = -1;
 
-        java.util.List<com.monkey.core.GameObject> list = switch (type) {
-            case "banana" -> engine.bananas;
-            case "stone" -> engine.stones;
-            case "river" -> engine.rivers;
-            default -> null;
-        };
-
-        // --- ONLY FIND OBJECTS THAT ARE ACTUALLY IN SIGHT ---
-        if (list != null) {
-            for (com.monkey.core.GameObject obj : list) {
-                if (inSight(engine, obj.x, obj.y)) {
-                    double dst = Math.hypot(obj.x - engine.monkeyX, obj.y - engine.monkeyY);
-                    if (minDst == -1 || dst < minDst) {
-                        minDst = dst;
-                        tx = obj.x; ty = obj.y;
-                    }
-                }
-            }
-        } else if (type.equals("turtle")) {
-            for(Turtle t : engine.turtles) {
-                if (inSight(engine, t.x, t.y)) {
-                    double dst = Math.hypot(t.x - engine.monkeyX, t.y - engine.monkeyY);
-                    if(minDst == -1 || dst < minDst) { minDst = dst; tx = t.x; ty = t.y; }
+        for (IGameObject obj : getAllObjects(engine)) {
+            if (obj.getType().equalsIgnoreCase(type) && inSight(engine, obj.getX(), obj.getY())) {
+                double dst = Math.hypot(obj.getX() - engine.monkeyX, obj.getY() - engine.monkeyY);
+                if (minDst == -1 || dst < minDst) {
+                    minDst = dst;
+                    tx = obj.getX(); ty = obj.getY();
                 }
             }
         }
@@ -188,7 +168,6 @@ public class ExpressionEvaluator {
             if (diff < -180) diff += 360;
             return diff;
         } else {
-            // --- IT'S NOT IN SIGHT! SHAKE HEAD AND RETURN 0 ---
             com.monkey.animation.AnimationManager.showSightAnim(engine, false);
             return 0;
         }
@@ -201,28 +180,11 @@ public class ExpressionEvaluator {
 
     public static boolean isSeeing(GameEnginePanel engine, String type) {
         type = type.replaceAll("['\"]", "").toLowerCase();
-        switch (type) {
-            case "banana" -> {
-                return checkSight(engine, engine.bananas);
-            }
-            case "stone" -> {
-                return checkSight(engine, engine.stones);
-            }
-            case "river" -> {
-                return checkSight(engine, engine.rivers);
-            }
-            case "turtle" -> {
-                for (Turtle obj : engine.turtles) {
-                    if (inSight(engine, obj.x, obj.y)) return true;
-                }
-            }
-        }
-        return false;
-    }
 
-    private static boolean checkSight(GameEnginePanel engine, java.util.List<com.monkey.core.GameObject> list) {
-        for(com.monkey.core.GameObject obj : list) {
-            if (inSight(engine, obj.x, obj.y)) return true;
+        for (IGameObject obj : getAllObjects(engine)) {
+            if (obj.getType().equalsIgnoreCase(type)) {
+                if (inSight(engine, obj.getX(), obj.getY())) return true;
+            }
         }
         return false;
     }
@@ -240,6 +202,6 @@ public class ExpressionEvaluator {
         double diff = Math.abs(monkeyAngle - angleToObj);
         if(diff > 180) diff = 360 - diff;
 
-        return diff < 30; // 60 degree vision cone straight ahead
+        return diff < 30; // 60 degree vision cone
     }
 }
