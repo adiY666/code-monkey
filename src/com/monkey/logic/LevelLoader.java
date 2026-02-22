@@ -18,7 +18,6 @@ public class LevelLoader {
 
     public static final String JSON_EXT = ".json";
 
-    // JSON Keys
     private static final String KEY_LAYOUT = "layout";
     private static final String KEY_START_X = "start_x";
     private static final String KEY_START_Y = "start_y";
@@ -47,8 +46,12 @@ public class LevelLoader {
         JSONArray tArr = layout.getJSONArray("turtles");
         for(int i = 0; i < tArr.length(); i++) {
             JSONArray t = tArr.getJSONArray(i);
-            engine.turtles.add(new Turtle(t.getDouble(0), t.getDouble(1), t.getInt(2), t.getDouble(3)));
+            double startAngle = (t.length() > 4) ? t.getDouble(4) : 0.0;
+            engine.turtles.add(new Turtle(t.getDouble(0), t.getDouble(1), t.getInt(2), t.getInt(3), startAngle));
         }
+
+        // --- FIX: Tell the engine to remember the turtles so they don't vanish on reset! ---
+        engine.saveInitialState();
     }
 
     public static void saveLevel(File file, GameEnginePanel engine, String category, int sortIndex) throws Exception {
@@ -66,7 +69,6 @@ public class LevelLoader {
         }
     }
 
-    // Helper to get meta-data without loading the whole visual map
     public static JSONObject readMetadata(File f) throws Exception {
         String content = new String(Files.readAllBytes(Paths.get(f.getPath())));
         return new JSONObject(content);

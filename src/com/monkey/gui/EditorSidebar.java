@@ -17,7 +17,7 @@ public class EditorSidebar extends JPanel {
 
     private static final int WIDTH = 450;
 
-    // Colors from your example
+    // Colors
     private static final Color BLUE = new Color(52, 152, 219);
     private static final Color PURPLE = new Color(155, 89, 182);
     private static final Color GREEN = new Color(46, 204, 113);
@@ -30,13 +30,16 @@ public class EditorSidebar extends JPanel {
     public final JTextArea codeArea;
     private final VisualMonkeyStudio studio;
 
+    // --- ADDED: Make runBtn a class variable so we can change its text/color later ---
+    private JButton runBtn;
+
     public EditorSidebar(VisualMonkeyStudio studio) {
         this.studio = studio;
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(WIDTH, 0));
         setBackground(UIConstants.BG_COLOR);
 
-        // --- 1. TABS (Matches your example) ---
+        // --- 1. TABS ---
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Arial", Font.BOLD, 12));
         tabs.setBackground(UIConstants.BG_COLOR);
@@ -44,7 +47,7 @@ public class EditorSidebar extends JPanel {
         setupTabs(tabs);
         add(tabs, BorderLayout.NORTH);
 
-        // --- 2. CODE AREA (Matches your example) ---
+        // --- 2. CODE AREA ---
         codeArea = new JTextArea("# Write code to get bananas!\n", 20, 30);
         codeArea.setFont(new Font("Consolas", Font.PLAIN, 16));
         codeArea.setBackground(EDITOR_BG);
@@ -58,11 +61,10 @@ public class EditorSidebar extends JPanel {
         scroll.getVerticalScrollBar().setBackground(EDITOR_BG);
         add(scroll, BorderLayout.CENTER);
 
-        // --- 3. FOOTER (Run/Reset only) ---
+        // --- 3. FOOTER ---
         setupFooter();
     }
 
-    // --- YOUR EXACT CODE HERE ---
     private void setupTabs(JTabbedPane tabs) {
         JPanel basic = createTabPanel(new Color(235, 245, 251));
         addToolBtn(basic, "⬆ STEP(50)", "step(50);\n", BLUE);
@@ -123,18 +125,45 @@ public class EditorSidebar extends JPanel {
         footer.setBackground(UIConstants.BG_COLOR);
         footer.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JButton runBtn = new JButton("▶ RUN CODE");
+        runBtn = new JButton("▶ RUN CODE");
         configBtn(runBtn, UIConstants.BTN_GREEN);
-        runBtn.addActionListener(e -> studio.executeCode(codeArea.getText()));
+
+        // --- ADDED: Toggle logic between Run and Stop ---
+        runBtn.addActionListener(e -> {
+            if (runBtn.getText().equals("▶ RUN CODE")) {
+                setRunState(true);
+                studio.executeCode(codeArea.getText());
+            } else {
+                setRunState(false);
+                studio.stopCode();
+            }
+        });
 
         JButton restartBtn = new JButton("↺ TRY AGAIN");
         configBtn(restartBtn, UIConstants.BTN_ORANGE);
-        restartBtn.addActionListener(e -> studio.loadLevel(studio.getCurrentFile()));
+
+        // --- ADDED: Force stop code and reset the Run button visually ---
+        restartBtn.addActionListener(e -> {
+            studio.stopCode();
+            studio.loadLevel(studio.getCurrentFile());
+            setRunState(false);
+        });
 
         footer.add(runBtn);
         footer.add(restartBtn);
 
         add(footer, BorderLayout.SOUTH);
+    }
+
+    // --- ADDED: Helper method to easily change the button's appearance ---
+    public void setRunState(boolean isRunning) {
+        if (isRunning) {
+            runBtn.setText("⏹ STOP CODE");
+            runBtn.setBackground(UIConstants.BTN_RED);
+        } else {
+            runBtn.setText("▶ RUN CODE");
+            runBtn.setBackground(UIConstants.BTN_GREEN);
+        }
     }
 
     private void configBtn(JButton btn, Color bg) {

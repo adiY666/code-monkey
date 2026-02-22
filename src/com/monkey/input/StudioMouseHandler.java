@@ -124,11 +124,18 @@ public class StudioMouseHandler extends MouseAdapter {
             try {
                 if(val != null) {
                     double a = Double.parseDouble(val);
-                    if(obj instanceof Turtle) ((Turtle)obj).angle = a;
-                    else if(obj.equals("Monkey")) context.getEngine().monkeyAngle = a;
+                    if(obj instanceof Turtle) {
+                        ((Turtle)obj).angle = a;
+                    }
+                    else if(obj.equals("Monkey")) {
+                        context.getEngine().monkeyAngle = a;
+                    }
+
+                    // --- FIX: Save the new rotation into the initial state so it can be saved/reset ---
+                    context.getEngine().saveInitialState();
                     context.getEngine().repaint();
                 }
-            } catch(Exception ignored) {} // Renamed to ignored
+            } catch(Exception ignored) {}
         }
     }
 
@@ -166,9 +173,11 @@ public class StudioMouseHandler extends MouseAdapter {
                 if(target instanceof GameObject) { ((GameObject)target).x = nx; ((GameObject)target).y = ny; }
                 else { context.getEngine().monkeyX = nx; context.getEngine().monkeyY = ny; }
 
+                // Save state here as well
+                context.getEngine().saveInitialState();
                 context.getEngine().repaint();
                 context.getAutoScrollWrapper().updateMapSize();
-            } catch(Exception ignored) {} // Renamed to ignored
+            } catch(Exception ignored) {}
         }
     }
 }

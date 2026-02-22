@@ -40,9 +40,20 @@ public class WinLoseDialogs {
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         btns.setOpaque(false);
 
-        btns.add(createBtn("MENU", UIConstants.BTN_GRAY, e -> { dialog.dispose(); context.returnToMenu(); }));
-        btns.add(createBtn("REDO", UIConstants.BTN_ORANGE, e -> { dialog.dispose(); context.loadLevel(context.getLevelManager().currentFile); }));
+        btns.add(createBtn("MENU", UIConstants.BTN_GRAY, e -> {
+            dialog.dispose();
+            context.returnToMenu();
+        }));
+
+        // --- ADDED STOP CODE HERE ---
+        btns.add(createBtn("REDO", UIConstants.BTN_ORANGE, e -> {
+            context.stopCode();
+            dialog.dispose();
+            context.loadLevel(context.getLevelManager().currentFile);
+        }));
+
         btns.add(createBtn("NEXT ➡", UIConstants.BTN_BLUE, e -> {
+            context.stopCode();
             dialog.dispose();
             context.clearCode();
             context.getLevelManager().loadNextLevel();
@@ -84,8 +95,9 @@ public class WinLoseDialogs {
         JPanel btns = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         btns.setOpaque(false);
 
-        // --- ONLY TRY AGAIN BUTTON ---
+        // --- ADDED STOP CODE HERE ---
         btns.add(createBtn("TRY AGAIN", UIConstants.BTN_GREEN, e -> {
+            context.stopCode();
             dialog.dispose();
             context.loadLevel(context.getLevelManager().currentFile);
         }));

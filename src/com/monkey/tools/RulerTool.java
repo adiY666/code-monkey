@@ -20,6 +20,10 @@ public class RulerTool {
     private boolean hasStart = false;
     private double startX, startY;
 
+    // Point 2 (Locked End)
+    private boolean hasEnd = false;
+    private double endX, endY;
+
     public RulerTool(GameEnginePanel engine) {
         this.engine = engine;
     }
@@ -27,6 +31,7 @@ public class RulerTool {
     public void setMode(int mode) {
         this.mode = mode;
         this.hasStart = false; // Reset when changing modes
+        this.hasEnd = false;
     }
 
     public int getMode() {
@@ -37,8 +42,6 @@ public class RulerTool {
         if (mode == 0) return;
 
         if (mode == 1) { // --- OBJECT TO OBJECT MEASURE ---
-
-            // FIX: Use Object instead of GameObject
             Object clicked = engine.getGameObjectAt(x, y);
 
             if (clicked != null) {
@@ -55,40 +58,60 @@ public class RulerTool {
                     return; // Unknown object
                 }
 
-                if (!hasStart) {
+                if (!hasStart || hasEnd) {
+                    // Click 1: Start new measurement
                     startX = objX;
                     startY = objY;
                     hasStart = true;
+                    hasEnd = false;
                 } else {
-                    hasStart = false; // Clicked second object, reset for next measure
+                    // Click 2: Lock the measurement
+                    endX = objX;
+                    endY = objY;
+                    hasEnd = true;
                 }
             }
 
         } else if (mode == 2) { // --- FREE MEASURE ---
-            if (!hasStart) {
+            if (!hasStart || hasEnd) {
+                // Click 1: Start new measurement
                 startX = x;
                 startY = y;
                 hasStart = true;
+                hasEnd = false;
             } else {
-                hasStart = false;
+                // Click 2: Lock the measurement
+                endX = x;
+                endY = y;
+                hasEnd = true;
             }
         }
     }
 
     public void draw(Graphics2D g2, Point currentMouse) {
-        if (mode == 0 || !hasStart || currentMouse == null) return;
+        if (mode == 0 || !hasStart) return;
+        if (!hasEnd && currentMouse == null) return;
+
+        // Use the locked end coordinates if we clicked twice, otherwise track the mouse
+        double targetX = hasEnd ? endX : currentMouse.x;
+        double targetY = hasEnd ? endY : currentMouse.y;
 
         // Draw Line
         g2.setColor(new Color(255, 165, 0, 200)); // Orange semi-transparent
         g2.setStroke(new BasicStroke(3, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 0, new float[]{9}, 0));
-        g2.drawLine((int) startX, (int) startY, currentMouse.x, currentMouse.y);
+        g2.drawLine((int) startX, (int) startY, (int) targetX, (int) targetY);
 
         // Draw Start Point Dot
         g2.fillOval((int) startX - 5, (int) startY - 5, 10, 10);
 
+        // Draw End Point Dot (if locked)
+        if (hasEnd) {
+            g2.fillOval((int) endX - 5, (int) endY - 5, 10, 10);
+        }
+
         // Calculate Distance
-        double dx = currentMouse.x - startX;
-        double dy = currentMouse.y - startY;
+        double dx = targetX - startX;
+        double dy = targetY - startY;
         int distance = (int) Math.hypot(dx, dy);
 
         // Calculate Angle (0 is Right, 90 is Up)
@@ -97,8 +120,8 @@ public class RulerTool {
 
         // Draw Measurement Text box
         String text = String.format("Dist: %d | Ang: %d°", distance, (int) angle);
-        int midX = (int) (startX + currentMouse.x) / 2;
-        int midY = (int) (startY + currentMouse.y) / 2;
+        int midX = (int) (startX + targetX) / 2;
+        int midY = (int) (startY + targetY) / 2;
 
         g2.setFont(new Font("Arial", Font.BOLD, 14));
         int textWidth = g2.getFontMetrics().stringWidth(text);
