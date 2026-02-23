@@ -83,6 +83,7 @@ public class LevelLoader {
         for(int i = 0; i < arr.length(); i++) {
             double x = arr.getJSONArray(i).getDouble(0);
             double y = arr.getJSONArray(i).getDouble(1);
+
             switch (type) {
                 case "Banana" -> list.add(new Banana(x, y));
                 case "Stone" -> list.add(new Stone(x, y));

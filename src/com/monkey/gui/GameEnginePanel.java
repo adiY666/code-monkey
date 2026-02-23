@@ -86,13 +86,10 @@ public class GameEnginePanel extends JPanel {
         if(rulerTool.getMode() > 0) repaint();
     }
 
-    // --- NEW: Activate Sight Tool via Button ---
     public void toggleSightTool() {
         sightTool.toggle();
         repaint();
     }
-
-    // --- LOGIC ---
 
     public void step(double dist) {
         double rad = Math.toRadians(monkeyAngle);

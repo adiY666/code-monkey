@@ -27,17 +27,6 @@ public class Turtle implements IGameObject {
 
     @Override public double getY() { return y; }
 
-    public void step(double distance) {
-        double rad = Math.toRadians(angle);
-        x += distance * Math.cos(rad);
-        y -= distance * Math.sin(rad);
-    }
-
-    public void turn(double turnAngle) {
-        this.angle += turnAngle;
-    }
-
-    // --- CHANGED: Now simply passes data to the Design class! ---
     public void draw(Graphics2D g2) {
         TurtleDesign.draw(g2, this.x, this.y, this.angle, this.id);
     }
