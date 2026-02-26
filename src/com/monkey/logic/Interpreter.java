@@ -54,8 +54,7 @@ public class Interpreter {
                         count += executeBlock(innerBlock, vars);
                     }
                 } else if (line.startsWith("while")) {
-                    // --- PASS ENGINE HERE ---
-                    while (ExpressionEvaluator.evaluateCondition(processor.getEngine(), line, vars)) {
+                    while (ConditionEvaluator.evaluateCondition(processor.getEngine(), line, vars)) {
                         if (!isRunning) break;
                         count += executeBlock(innerBlock, vars);
                     }
@@ -95,12 +94,12 @@ public class Interpreter {
             String varName = line.substring(0, opIndex).trim();
             String expr = line.substring(opIndex + operator.length()).trim();
 
-            int evalResult = ExpressionEvaluator.evaluateMath(processor.getEngine(), expr, vars);
+            int evalResult = MathEvaluator.evaluateMath(processor.getEngine(), expr, vars);
 
             if (operator.equals("=")) {
                 vars.put(varName, evalResult);
             } else {
-                int currentVal = ExpressionEvaluator.getVal(processor.getEngine(), varName, vars);
+                int currentVal = MathEvaluator.getVal(processor.getEngine(), varName, vars);
                 switch(operator) {
                     case "+=": vars.put(varName, currentVal + evalResult); break;
                     case "-=": vars.put(varName, currentVal - evalResult); break;

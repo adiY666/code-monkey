@@ -1,31 +1,24 @@
 package com.monkey.gui;
 
-import com.monkey.core.*;
-import com.monkey.design.EditorDesign;
-import com.monkey.design.ItemDesign;
-import com.monkey.design.MonkeyDesign;
-import com.monkey.design.TerrainDesign;
+import com.monkey.core.GameObject;
+import com.monkey.core.Turtle;
 import com.monkey.tools.RulerTool;
 import com.monkey.tools.SightTool;
-
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.RenderingHints;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.swing.JPanel;
-import javax.swing.Timer;
-import org.json.JSONArray;
+
 import org.json.JSONObject;
 
 public class GameEnginePanel extends JPanel {
 
-    // --- GAME OBJECTS ---
+    // --- GAME STATE ---
     public double monkeyX = 350, monkeyY = 300;
     public double monkeyAngle = 0;
 
@@ -34,24 +27,24 @@ public class GameEnginePanel extends JPanel {
     public final List<GameObject> rivers = new ArrayList<>();
     public final List<Turtle> turtles = new ArrayList<>();
 
-    // --- VISUAL EFFECTS ---
-    private final List<PopEffect> effects = new ArrayList<>();
-    private Point currentMouse = new Point(0,0);
-
-    // --- RESET STATE ---
+    // --- TRACKING & RESET ---
     private double startX = 350, startY = 300, startAngle = 0;
     private final List<Turtle> startTurtles = new ArrayList<>();
-    private boolean spawnSet = false;
+    public boolean spawnSet = false;
+    public int levelLimit = 0;
+    private Runnable onLevelComplete;
 
-    // --- TOOLS ---
+    // --- TOOLS & UI STATE ---
+    private Point currentMouse = new Point(0,0);
     private String ghostTool = "none";
     private int ghostX, ghostY;
 
     public final RulerTool rulerTool;
-    public final SightTool sightTool; // --- ADDED SIGHT TOOL ---
-    public int levelLimit = 0;
+    public final SightTool sightTool;
 
-    private Runnable onLevelComplete;
+    // --- SUB-SYSTEMS ---
+    private final GameRenderer renderer;
+    private final MapEditorLogic mapEditor;
 
     public GameEnginePanel() {
         setBackground(new Color(34, 139, 34));
@@ -59,76 +52,34 @@ public class GameEnginePanel extends JPanel {
         setPreferredSize(new Dimension(800, 600));
 
         this.rulerTool = new RulerTool(this);
-        this.sightTool = new SightTool(this); // --- INITIALIZED SIGHT TOOL ---
+        this.sightTool = new SightTool(this);
 
-        new Timer(30, e -> updateEffects()).start();
+        // Initialize our separated modules!
+        this.renderer = new GameRenderer(this);
+        this.mapEditor = new MapEditorLogic(this);
     }
 
-    public void setOnLevelComplete(Runnable action) {
-        this.onLevelComplete = action;
-    }
+    // --- GETTERS ---
+    public Point getCurrentMouse() { return currentMouse; }
+    public String getGhostTool() { return ghostTool; }
+    public int getGhostX() { return ghostX; }
+    public int getGhostY() { return ghostY; }
+    public int getBananaCount() { return bananas.size(); }
 
-    public void setRulerMode(int mode) {
-        rulerTool.setMode(mode);
-        repaint();
-    }
-
-    public int getRulerMode() {
-        return rulerTool.getMode();
-    }
-
-    public void handleRulerClick(int x, int y) {
-        rulerTool.handleClick(x, y);
-    }
-
-    public void updateMousePosition(Point p) {
-        this.currentMouse = p;
-        if(rulerTool.getMode() > 0) repaint();
-    }
-
-    public void toggleSightTool() {
-        sightTool.toggle();
-        repaint();
-    }
-
-    public void step(double dist) {
-        double rad = Math.toRadians(monkeyAngle);
-        monkeyX += dist * Math.cos(rad);
-        monkeyY -= dist * Math.sin(rad);
-        repaint();
-    }
-
-    public void rotateMonkey(String dir) {
-        if(dir.equals("left")) monkeyAngle += 90;
-        else monkeyAngle -= 90;
-        repaint();
-    }
-
-    public void animateMove(int distance, Runnable onEnd) {
-        final int frames = 10;
-        final double stepPerFrame = (double) distance / frames;
-
-        new Timer(20, new java.awt.event.ActionListener() {
-            int count = 0;
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                step(stepPerFrame);
-                checkCollisions();
-                count++;
-                if (count >= frames) {
-                    ((Timer)e.getSource()).stop();
-                    if(onEnd != null) onEnd.run();
-                }
-            }
-        }).start();
-    }
+    // --- TOOL ACTIONS ---
+    public void setOnLevelComplete(Runnable action) { this.onLevelComplete = action; }
+    public void setRulerMode(int mode) { rulerTool.setMode(mode); repaint(); }
+    public int getRulerMode() { return rulerTool.getMode(); }
+    public void handleRulerClick(int x, int y) { rulerTool.handleClick(x, y); }
+    public void updateMousePosition(Point p) { this.currentMouse = p; if(rulerTool.getMode() > 0) repaint(); }
+    public void toggleSightTool() { sightTool.toggle(); repaint(); }
 
     public void checkCollisions() {
         Iterator<GameObject> it = bananas.iterator();
         while(it.hasNext()) {
             GameObject b = it.next();
             if(Math.hypot(b.x - monkeyX, b.y - monkeyY) < 40) {
-                effects.add(new PopEffect(b.x, b.y));
+                renderer.addPop(b.x, b.y); // Tell renderer to show effect
                 it.remove();
                 repaint();
 
@@ -139,18 +90,6 @@ public class GameEnginePanel extends JPanel {
         }
     }
 
-    private void updateEffects() {
-        if(effects.isEmpty()) return;
-        Iterator<PopEffect> it = effects.iterator();
-        while(it.hasNext()) {
-            PopEffect p = it.next();
-            p.life--;
-            p.radius += 2;
-            if(p.life <= 0) it.remove();
-        }
-        repaint();
-    }
-
     public void resetLevel() {
         if (!spawnSet) {
             this.startX = monkeyX; this.startY = monkeyY; this.startAngle = monkeyAngle; spawnSet = true;
@@ -158,101 +97,32 @@ public class GameEnginePanel extends JPanel {
         this.monkeyX = startX; this.monkeyY = startY; this.monkeyAngle = startAngle;
         turtles.clear();
         for(Turtle t : startTurtles) turtles.add(new Turtle(t.x, t.y, t.id, t.type, t.angle));
-        effects.clear();
+        renderer.clearEffects();
         repaint();
     }
 
     public void saveInitialState() {
         this.startX = monkeyX; this.startY = monkeyY; this.startAngle = monkeyAngle; this.spawnSet = true;
-        startTurtles.clear(); for(Turtle t : turtles) startTurtles.add(new Turtle(t.x, t.y, t.id, t.type, t.angle));
+        startTurtles.clear();
+        for(Turtle t : turtles) startTurtles.add(new Turtle(t.x, t.y, t.id, t.type, t.angle));
     }
 
-    // --- DRAWING ---
+    // --- DRAWING DELEGATION ---
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        TerrainDesign.drawRivers(g2, rivers);
-        TerrainDesign.drawStones(g2, stones);
-
-        for(Turtle t : turtles) t.draw(g2);
-        for(GameObject b : bananas) ItemDesign.drawBanana(g2, b.x, b.y);
-
-        // --- DRAW SIGHT CONE BEHIND THE MONKEY ---
-        sightTool.draw(g2);
-
-        MonkeyDesign.draw(g2, monkeyX, monkeyY, monkeyAngle);
-
-        for(PopEffect p : effects) {
-            g2.setColor(new Color(255, 255, 0, Math.max(0, p.life * 10)));
-            g2.setStroke(new BasicStroke(3));
-            g2.drawOval((int)p.x - p.radius, (int)p.y - p.radius, p.radius * 2, p.radius * 2);
-        }
-
-        if(!ghostTool.equals("none")) EditorDesign.drawGhost(g2, ghostTool, ghostX, ghostY);
-        rulerTool.draw(g2, currentMouse);
+        // Let the renderer handle all the complex drawing!
+        renderer.draw((Graphics2D) g);
     }
 
-    // --- EDITOR HELPERS ---
-
+    // --- EDITOR DELEGATION ---
     public void updateGhost(String tool, int x, int y) {
         this.ghostTool = tool; this.ghostX = x; this.ghostY = y; repaint();
     }
 
-    public void addObject(String type, int x, int y) {
-        switch (type) {
-            case "Banana" -> bananas.add(new Banana(x, y));
-            case "Stone" -> stones.add(new Stone(x, y));
-            case "River" -> rivers.add(new River(x, y));
-            case "Turtle" -> turtles.add(new Turtle(x, y, turtles.size(), 0));
-            case "Spawn" -> {
-                monkeyX = x;
-                monkeyY = y;
-                spawnSet = true;
-            }
-        }
-        saveInitialState(); repaint();
-    }
-
-    public void removeObject(int x, int y) {
-        bananas.removeIf(o -> dist(o, x, y) < 20);
-        stones.removeIf(o -> dist(o, x, y) < 20);
-        rivers.removeIf(o -> dist(o, x, y) < 25);
-        turtles.removeIf(o -> dist(o, x, y) < 20);
-        for(int i=0; i<turtles.size(); i++) turtles.get(i).id = i;
-        saveInitialState(); repaint();
-    }
-
-    public Object getGameObjectAt(int x, int y) {
-        for(GameObject o : bananas) if(dist(o,x,y)<20) return o;
-        for(GameObject o : stones) if(dist(o,x,y)<20) return o;
-        for(Turtle o : turtles) if(dist(o,x,y)<20) return o;
-
-        if(Math.hypot(monkeyX-x, monkeyY-y) < 20) return "Monkey";
-
-        return null;
-    }
-
-    private double dist(IGameObject o, int x, int y) {
-        return Math.hypot(o.getX() - x, o.getY() - y);
-    }
-
-    public int getBananaCount() { return bananas.size(); }
-
-    public JSONObject getLayoutAsJson() {
-        JSONArray b = new JSONArray(); for(GameObject o : bananas) b.put(new JSONArray(new double[]{o.x, o.y}));
-        JSONArray s = new JSONArray(); for(GameObject o : stones) s.put(new JSONArray(new double[]{o.x, o.y}));
-        JSONArray r = new JSONArray(); for(GameObject o : rivers) r.put(new JSONArray(new double[]{o.x, o.y}));
-        JSONArray t = new JSONArray(); for(Turtle o : turtles) t.put(new JSONArray(new double[]{o.x, o.y, (double)o.id, (double)o.type, o.angle}));
-        JSONObject root = new JSONObject();
-        root.put("bananas", b); root.put("stones", s); root.put("rivers", r); root.put("turtles", t);
-        return root;
-    }
-
-    private static class PopEffect {
-        double x, y; int radius = 5; int life = 20;
-        PopEffect(double x, double y) { this.x = x; this.y = y; }
-    }
+    // Pass requests to MapEditorLogic
+    public void addObject(String type, int x, int y) { mapEditor.addObject(type, x, y); }
+    public void removeObject(int x, int y) { mapEditor.removeObject(x, y); }
+    public Object getGameObjectAt(int x, int y) { return mapEditor.getGameObjectAt(x, y); }
+    public JSONObject getLayoutAsJson() { return mapEditor.getLayoutAsJson(); }
 }

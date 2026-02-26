@@ -22,7 +22,7 @@ public class CommandProcessor {
         if (line.endsWith(";")) line = line.substring(0, line.length() - 1);
 
         if (line.startsWith("step(")) {
-            int dist = ExpressionEvaluator.parseValue(engine, line, vars);
+            int dist = MathEvaluator.parseValue(engine, line, vars);
             int frames = (int) Math.max(1, Math.abs(dist) / MOVEMENT_SPEED);
             AnimationManager.smoothStep(engine, dist, frames);
             return true;
@@ -32,10 +32,9 @@ public class CommandProcessor {
             AnimationManager.smoothTurn(engine, angle, 15);
             return true;
         }
-        // --- NEW: showSight command! ---
         else if (line.startsWith("showSight(")) {
             String target = line.substring(line.indexOf("(") + 1, line.lastIndexOf(")")).trim();
-            boolean seesIt = ExpressionEvaluator.isSeeing(engine, target);
+            boolean seesIt = SensingEngine.isSeeing(engine, target);
             AnimationManager.showSightAnim(engine, seesIt);
             return true;
         }
@@ -46,7 +45,7 @@ public class CommandProcessor {
         return false;
     }
 
-    private boolean handleTurtle(String line, Map<String, Integer> vars) throws InterruptedException {
+    private boolean handleTurtle(String line, Map<String, Integer> vars) {
         int index = 0;
         String cmd = line;
 
@@ -62,7 +61,7 @@ public class CommandProcessor {
             Turtle t = engine.turtles.get(index);
 
             if (cmd.startsWith("step(")) {
-                int dist = ExpressionEvaluator.parseValue(engine, cmd, vars);
+                int dist = MathEvaluator.parseValue(engine, cmd, vars);
                 int frames = (int) Math.max(1, Math.abs(dist) / MOVEMENT_SPEED);
                 com.monkey.animation.TurtleAnimation.smoothStep(engine, t, dist, frames);
             } else if (cmd.startsWith("turn(")) {
@@ -76,9 +75,9 @@ public class CommandProcessor {
         }
     }
 
-    private double getTurnAngle(String line, Map<String, Integer> vars) {
+    private double getTurnAngle(String line, Map<String, Integer> vars) throws InterruptedException {
         if (line.contains("'left'") || line.contains("\"left\"")) return 90;
         else if (line.contains("'right'") || line.contains("\"right\"")) return -90;
-        else return ExpressionEvaluator.parseValue(engine, line, vars);
+        else return MathEvaluator.parseValue(engine, line, vars);
     }
 }
