@@ -1,8 +1,8 @@
 package com.monkey.animation;
 
 import com.monkey.core.Turtle;
-import com.monkey.gui.GameEnginePanel;
-import com.monkey.logic.CollisionChecker;
+import com.monkey.gui.game.GameEnginePanel;
+import com.monkey.engine.CollisionChecker;
 import java.util.concurrent.CountDownLatch;
 import javax.swing.Timer;
 import javax.swing.SwingUtilities;

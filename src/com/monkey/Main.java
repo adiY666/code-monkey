@@ -1,6 +1,6 @@
 package com.monkey;
 
-import com.monkey.gui.LevelMenu;
+import com.monkey.gui.menu.LevelMenu;
 import javax.swing.SwingUtilities;
 
 public class Main {

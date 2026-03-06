@@ -1,8 +1,7 @@
 package com.monkey.animation;
 
-import com.monkey.gui.GameEnginePanel;
-import com.monkey.logic.CollisionChecker;
-import java.awt.Graphics2D;
+import com.monkey.gui.game.GameEnginePanel;
+import com.monkey.engine.CollisionChecker;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Timer;
@@ -18,25 +17,10 @@ public class AnimationManager {
         loop.start();
     }
 
-    public void addPop(double x, double y) {
-        effects.add(new PopEffect(x, y));
-    }
-
-    public void clear() {
-        effects.clear();
-    }
-
     private void update() {
         if (effects.isEmpty()) return;
         effects.removeIf(p -> !p.update());
         panel.repaint();
-    }
-
-    public void drawEffects(Graphics2D g2) {
-        List<PopEffect> currentEffects = new ArrayList<>(effects);
-        for (PopEffect p : currentEffects) {
-            p.draw(g2);
-        }
     }
 
     public static void smoothStep(GameEnginePanel engine, double totalDist, int frames) throws InterruptedException {

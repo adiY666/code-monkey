@@ -1,7 +1,7 @@
 package com.monkey.tools;
 
 import com.monkey.core.GameObject;
-import com.monkey.gui.GameEnginePanel;
+import com.monkey.gui.game.GameEnginePanel;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

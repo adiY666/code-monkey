@@ -2,7 +2,7 @@ package com.monkey.input;
 
 import com.monkey.core.GameObject;
 import com.monkey.core.Turtle;
-import com.monkey.gui.VisualMonkeyStudio;
+import com.monkey.gui.game.VisualMonkeyStudio;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;

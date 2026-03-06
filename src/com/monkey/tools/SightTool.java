@@ -1,6 +1,6 @@
 package com.monkey.tools;
 
-import com.monkey.gui.GameEnginePanel;
+import com.monkey.gui.game.GameEnginePanel;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Arc2D;
