@@ -2,12 +2,15 @@ package com.monkey.gui.editor;
 
 import com.monkey.gui.UIConstants;
 import com.monkey.gui.game.VisualMonkeyStudio;
-
+import com.monkey.language.CommandRegistry;
+import com.monkey.language.GameCommand;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -18,21 +21,15 @@ import javax.swing.border.EmptyBorder;
 public class EditorSidebar extends JPanel {
 
     private static final int WIDTH = 450;
-
-    // Colors
-    private static final Color BLUE = new Color(52, 152, 219);
-    private static final Color PURPLE = new Color(155, 89, 182);
-    private static final Color GREEN = new Color(46, 204, 113);
-    private static final Color TEAL = new Color(0, 150, 136);
-
-    // Editor Theme
     private static final Color EDITOR_BG = new Color(40, 44, 52);
     private static final Color EDITOR_TEXT = new Color(171, 178, 191);
 
     public final JTextArea codeArea;
     private final VisualMonkeyStudio studio;
-
     private JButton runBtn;
+
+    // Memory list to track buttons so we can hide/show them dynamically
+    private final Map<GameCommand, JButton> commandButtons = new HashMap<>();
 
     public EditorSidebar(VisualMonkeyStudio studio) {
         this.studio = studio;
@@ -40,7 +37,6 @@ public class EditorSidebar extends JPanel {
         setPreferredSize(new Dimension(WIDTH, 0));
         setBackground(UIConstants.BG_COLOR);
 
-        // --- 1. TABS ---
         JTabbedPane tabs = new JTabbedPane();
         tabs.setFont(new Font("Arial", Font.BOLD, 12));
         tabs.setBackground(UIConstants.BG_COLOR);
@@ -48,7 +44,6 @@ public class EditorSidebar extends JPanel {
         setupTabs(tabs);
         add(tabs, BorderLayout.NORTH);
 
-        // --- 2. CODE AREA ---
         codeArea = new JTextArea("# Write code to get bananas!\n", 20, 30);
         codeArea.setFont(new Font("Consolas", Font.PLAIN, 16));
         codeArea.setBackground(EDITOR_BG);
@@ -62,53 +57,55 @@ public class EditorSidebar extends JPanel {
         scroll.getVerticalScrollBar().setBackground(EDITOR_BG);
         add(scroll, BorderLayout.CENTER);
 
-        // --- 3. FOOTER ---
         setupFooter();
     }
 
     private void setupTabs(JTabbedPane tabs) {
-        // Basic Tab
         JPanel basicInner = createInnerPanel(new Color(235, 245, 251));
-        addToolBtn(basicInner, "⬆ STEP(50)", "step(50);\n", BLUE);
-        addToolBtn(basicInner, "⬇ BACK(-50)", "step(-50);\n", BLUE);
-        addToolBtn(basicInner, "↰ LEFT", "turn('left');\n", BLUE);
-        addToolBtn(basicInner, "↱ RIGHT", "turn('right');\n", BLUE);
+        addCommandBtn(basicInner, CommandRegistry.STEP_FWD);
+        addCommandBtn(basicInner, CommandRegistry.STEP_BCK);
+        addCommandBtn(basicInner, CommandRegistry.TURN_L);
+        addCommandBtn(basicInner, CommandRegistry.TURN_R);
 
-        // Loops Tab
         JPanel loopsInner = createInnerPanel(new Color(245, 238, 248));
-        addToolBtn(loopsInner, "🔄 REPEAT 3", "for(int i = 0; i < 3; i++){\n\n}\n", PURPLE);
-        addToolBtn(loopsInner, "❓ WHILE", "while(x < 300){\n\n}\n", PURPLE);
+        addCommandBtn(loopsInner, CommandRegistry.LOOP_FOR);
+        addCommandBtn(loopsInner, CommandRegistry.LOOP_WHILE);
 
-        // Vars & Vision Tab
         JPanel varsInner = createInnerPanel(new Color(233, 247, 239));
-        addToolBtn(varsInner, "int x = 0", "int x = 0;\n", GREEN);
-        addToolBtn(varsInner, "step(x)", "step(x);\n", GREEN);
-        addToolBtn(varsInner, "📏 DISTANCE", "distanceTo('banana')", GREEN);
-        addToolBtn(varsInner, "📐 ANGLE TO", "angleTo('banana')", GREEN);
-        addToolBtn(varsInner, "👆 TOUCHING", "isTouched('banana')", GREEN);
-        addToolBtn(varsInner, "👁 SIGHT", "isSeeing('banana')", GREEN);
+        addCommandBtn(varsInner, CommandRegistry.VAR_INT);
+        addCommandBtn(varsInner, CommandRegistry.VAR_STEP);
+        addCommandBtn(varsInner, CommandRegistry.DIST_TO);
+        addCommandBtn(varsInner, CommandRegistry.ANG_TO);
+        addCommandBtn(varsInner, CommandRegistry.IS_TOUCH);
+        addCommandBtn(varsInner, CommandRegistry.IS_SEE);
 
-        // Turtle Tab
         JPanel turtleInner = createInnerPanel(new Color(224, 242, 241));
-        addToolBtn(turtleInner, "🐢 STEP(50)", "turtles[0].step(50);\n", TEAL);
-        addToolBtn(turtleInner, "🐢 STEP(50)", "turtles[0].step(-50);\n", TEAL);
-        addToolBtn(turtleInner, "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL);
-        addToolBtn(turtleInner, "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL);
+        addCommandBtn(turtleInner, CommandRegistry.T_STEP_FWD);
+        addCommandBtn(turtleInner, CommandRegistry.T_STEP_BCK);
+        addCommandBtn(turtleInner, CommandRegistry.T_TURN_L);
+        addCommandBtn(turtleInner, CommandRegistry.T_TURN_R);
 
-        // Wrap the panels in scrolling wrappers and add to tabs!
+        JPanel objectsInner = createInnerPanel(new Color(253, 242, 233));
+        addCommandBtn(objectsInner, CommandRegistry.OBJ_BANANA);
+        addCommandBtn(objectsInner, CommandRegistry.OBJ_STONE);
+        addCommandBtn(objectsInner, CommandRegistry.OBJ_TURTLE);
+        addCommandBtn(objectsInner, CommandRegistry.OBJ_RIVER);
+
         tabs.addTab("Basic", createScroll(basicInner, new Color(235, 245, 251)));
         tabs.addTab("Loops", createScroll(loopsInner, new Color(245, 238, 248)));
         tabs.addTab("Vars", createScroll(varsInner, new Color(233, 247, 239)));
         tabs.addTab("Turtle", createScroll(turtleInner, new Color(224, 242, 241)));
+        tabs.addTab("Objects", createScroll(objectsInner, new Color(253, 242, 233)));
 
-        tabs.setBackgroundAt(0, BLUE);
-        tabs.setBackgroundAt(1, PURPLE);
-        tabs.setBackgroundAt(2, GREEN);
-        tabs.setBackgroundAt(3, TEAL);
-        for(int i = 0; i < 4; i++) tabs.setForegroundAt(i, Color.WHITE);
+        tabs.setBackgroundAt(0, CommandRegistry.STEP_FWD.uiColor);
+        tabs.setBackgroundAt(1, CommandRegistry.LOOP_FOR.uiColor);
+        tabs.setBackgroundAt(2, CommandRegistry.VAR_INT.uiColor);
+        tabs.setBackgroundAt(3, CommandRegistry.T_STEP_FWD.uiColor);
+        tabs.setBackgroundAt(4, CommandRegistry.OBJ_BANANA.uiColor);
+
+        for(int i = 0; i < 5; i++) tabs.setForegroundAt(i, Color.WHITE);
     }
 
-    // --- CHANGED: Sets up a standard inner grid for buttons ---
     private JPanel createInnerPanel(Color bg) {
         JPanel p = new JPanel(new GridLayout(0, 1, 5, 5));
         p.setBackground(bg);
@@ -116,35 +113,46 @@ public class EditorSidebar extends JPanel {
         return p;
     }
 
-    // --- NEW: Wraps the inner panel in a JScrollPane so it doesn't stretch and can scroll ---
     private JScrollPane createScroll(JPanel inner, Color bg) {
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.setBackground(bg);
-        wrapper.add(inner, BorderLayout.NORTH); // Keeps the buttons at the top
+        wrapper.add(inner, BorderLayout.NORTH);
 
         JScrollPane scroll = new JScrollPane(wrapper);
         scroll.setBorder(null);
-        scroll.setPreferredSize(new Dimension(WIDTH, 180)); // Height of the scroll area
-        scroll.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling speed
+        scroll.setPreferredSize(new Dimension(WIDTH, 180));
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
         return scroll;
     }
 
-    private void addToolBtn(JPanel p, String label, String code, Color color) {
-        JButton b = new JButton(label);
+    private void addCommandBtn(JPanel p, GameCommand cmd) {
+        JButton b = new JButton(cmd.uiLabel);
         b.setFont(UIConstants.EMOJI_FONT.deriveFont(12f));
-        b.setBackground(color);
+        b.setBackground(cmd.uiColor);
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setBorderPainted(false);
-
-        // --- CHANGED: Force every button to always be exactly 40 pixels tall! ---
         b.setPreferredSize(new Dimension(0, 40));
 
         b.addActionListener(e -> {
-            codeArea.insert(code, codeArea.getCaretPosition());
+            codeArea.insert(cmd.defaultCode, codeArea.getCaretPosition());
             codeArea.requestFocus();
         });
+
         p.add(b);
+        commandButtons.put(cmd, b);
+    }
+
+    public void unlockCommandsForLevel(String currentPack, int currentLevelNumber) {
+        for (Map.Entry<GameCommand, JButton> entry : commandButtons.entrySet()) {
+            GameCommand cmd = entry.getKey();
+            JButton btn = entry.getValue();
+
+            // Ask the command logic if it should be unlocked!
+            btn.setVisible(cmd.isUnlocked(currentPack, currentLevelNumber));
+        }
+        revalidate();
+        repaint();
     }
 
     private void setupFooter() {
@@ -176,7 +184,6 @@ public class EditorSidebar extends JPanel {
 
         footer.add(runBtn);
         footer.add(restartBtn);
-
         add(footer, BorderLayout.SOUTH);
     }
 

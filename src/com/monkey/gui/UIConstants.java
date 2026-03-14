@@ -9,7 +9,7 @@ public class UIConstants {
     // Try changing "Dialog" to "Segoe UI Emoji" or "Monospaced" if emojis are squares
     public static final Font EMOJI_FONT = new Font("Segoe UI Emoji", Font.PLAIN, 16);
     public static final Font TITLE_FONT = new Font("Arial", Font.BOLD, 28);
-    public static final Font NORMAL_FONT = new Font("Arial", Font.PLAIN, 16); // Added for new settings dialog
+    public static final Font NORMAL_FONT = new Font("Arial", Font.PLAIN, 18); // Added for new settings dialog
     public static final Font TEXT_FONT = new Font("Arial", Font.PLAIN, 14);
 
     // --- COLORS ---

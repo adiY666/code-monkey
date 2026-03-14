@@ -5,8 +5,10 @@ import com.monkey.gui.game.GameEnginePanel;
 import com.monkey.gui.game.VisualMonkeyStudio;
 import com.monkey.gui.game.WinLoseDialogs;
 import com.monkey.interpreter.CodeExecutor;
+import com.monkey.interpreter.SyntaxChecker;
 import com.monkey.level.LevelManager;
 
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class GameLifecycleManager {
@@ -31,6 +33,27 @@ public class GameLifecycleManager {
     }
 
     public void executeCode(String code) {
+        String currentPack = "basic";
+        int currentLevelNum = 1;
+
+        // Automatically read the folder name and file number
+        if (levelManager.currentFile != null) {
+            try {
+                currentPack = levelManager.currentFile.getParentFile().getName();
+                String name = levelManager.currentFile.getName();
+                currentLevelNum = Integer.parseInt(name.replaceAll("\\D+", ""));
+            } catch (Exception ignored) {}
+        }
+
+        // Pass the Folder AND the Level into the Compiler!
+        String errorMessage = SyntaxChecker.validate(code, currentPack, currentLevelNum);
+
+        if (errorMessage != null) {
+            JOptionPane.showMessageDialog(studio, errorMessage, "Compile Error", JOptionPane.ERROR_MESSAGE);
+            sidebar.setRunState(false);
+            return;
+        }
+
         engine.setRulerMode(0);
         isWinning = false;
         executor.execute(code);
