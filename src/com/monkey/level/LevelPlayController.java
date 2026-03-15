@@ -12,7 +12,7 @@ public class LevelPlayController {
     private final VisualMonkeyStudio context;
     private final GameEnginePanel engine;
     private final AutoScrollPanel autoScroll;
-    private final LevelManager manager; // Reference to update the Hub's variables
+    private final LevelManager manager;
 
     public LevelPlayController(VisualMonkeyStudio context, GameEnginePanel engine, AutoScrollPanel autoScroll, LevelManager manager) {
         this.context = context;
@@ -30,6 +30,19 @@ public class LevelPlayController {
             manager.currentLevelLimit = engine.levelLimit;
             autoScroll.updateMapSize();
             engine.repaint();
+
+            // --- NEW: Refresh the sidebar UI to hide/show unlocked commands! ---
+            try {
+                String packName = f.getParentFile().getName();
+                String fileName = f.getName();
+                int levelNum = Integer.parseInt(fileName.replaceAll("\\D+", ""));
+
+                context.getSidebar().unlockCommandsForLevel(packName, levelNum);
+            } catch (Exception e) {
+                context.getSidebar().unlockCommandsForLevel("custom", 999);
+            }
+            // -------------------------------------------------------------------
+
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(context, "Error loading level.");

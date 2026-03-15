@@ -84,13 +84,22 @@ public class VisualMonkeyStudio extends JFrame {
 
     // --- Public Methods ---
     public User getCurrentUser() { return currentUser; }
+
     public LevelManager getLevelManager() { return levelManager; }
+
     public GameEnginePanel getEngine() { return engine; }
+
     public AutoScrollPanel getAutoScrollWrapper() { return autoScrollWrapper; }
+
     public String getSelectedTool() { return selectedTool; }
-    public boolean isEditMode() { return isEditMode; }
+
+    public com.monkey.gui.editor.EditorSidebar getSidebar() {
+        return sidebar;
+    }
 
     public File getCurrentFile() { return levelManager.currentFile; }
+
+    public boolean isEditMode() { return isEditMode; }
 
     public void setTool(String tool) {
         this.selectedTool = tool;

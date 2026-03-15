@@ -9,7 +9,7 @@ public class GameCommand {
     public final String defaultCode;
     public final Color uiColor;
 
-    // --- CHANGED: Now uses Folder + Number ---
+    // Unlock Requirements
     public final String unlockPack;
     public final int unlockLevel;
 
@@ -23,14 +23,13 @@ public class GameCommand {
         this.unlockLevel = unlockLevel;
     }
 
-    // --- NEW: Smart check to see if the command is unlocked ---
+    // Smart check to see if the command should be available
     public boolean isUnlocked(String currentPack, int currentLevel) {
         int cmdPackIdx = CommandRegistry.getPackIndex(this.unlockPack);
         int currPackIdx = CommandRegistry.getPackIndex(currentPack);
 
-        // If they are in a later folder, it's definitely unlocked!
+        // If in a future pack, or the exact right pack and level
         if (currPackIdx > cmdPackIdx) return true;
-        // If they are in the exact same folder, check the level number!
         if (currPackIdx == cmdPackIdx && currentLevel >= this.unlockLevel) return true;
 
         return false;

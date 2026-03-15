@@ -36,7 +36,6 @@ public class GameLifecycleManager {
         String currentPack = "basic";
         int currentLevelNum = 1;
 
-        // Automatically read the folder name and file number
         if (levelManager.currentFile != null) {
             try {
                 currentPack = levelManager.currentFile.getParentFile().getName();
@@ -45,7 +44,6 @@ public class GameLifecycleManager {
             } catch (Exception ignored) {}
         }
 
-        // Pass the Folder AND the Level into the Compiler!
         String errorMessage = SyntaxChecker.validate(code, currentPack, currentLevelNum);
 
         if (errorMessage != null) {

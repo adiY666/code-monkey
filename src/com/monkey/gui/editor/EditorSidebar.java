@@ -28,7 +28,6 @@ public class EditorSidebar extends JPanel {
     private final VisualMonkeyStudio studio;
     private JButton runBtn;
 
-    // Memory list to track buttons so we can hide/show them dynamically
     private final Map<GameCommand, JButton> commandButtons = new HashMap<>();
 
     public EditorSidebar(VisualMonkeyStudio studio) {
@@ -147,8 +146,6 @@ public class EditorSidebar extends JPanel {
         for (Map.Entry<GameCommand, JButton> entry : commandButtons.entrySet()) {
             GameCommand cmd = entry.getKey();
             JButton btn = entry.getValue();
-
-            // Ask the command logic if it should be unlocked!
             btn.setVisible(cmd.isUnlocked(currentPack, currentLevelNumber));
         }
         revalidate();
