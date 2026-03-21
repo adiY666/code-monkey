@@ -49,11 +49,19 @@ public class LevelListPanel extends JPanel {
         listContainer = new JPanel(new GridLayout(0, 1, 10, 10));
         listContainer.setBackground(UIConstants.BG_COLOR);
 
-        JScrollPane scroll = new JScrollPane(listContainer);
+        // --- THE SCROLL FIX ---
+        // We wrap the listContainer in a North BorderLayout.
+        // This prevents the GridLayout from stretching/squishing buttons and forces scrolling.
+        JPanel scrollWrapper = new JPanel(new BorderLayout());
+        scrollWrapper.setBackground(UIConstants.BG_COLOR);
+        scrollWrapper.add(listContainer, BorderLayout.NORTH);
+
+        JScrollPane scroll = new JScrollPane(scrollWrapper);
         scroll.setBorder(null);
         scroll.setBackground(UIConstants.BG_COLOR);
-        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.getVerticalScrollBar().setUnitIncrement(16); // Smooth scrolling speed
         add(scroll, BorderLayout.CENTER);
+        // ----------------------
 
         // Back Button
         JButton backBtn = new JButton("Back to Menu");

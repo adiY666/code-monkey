@@ -40,7 +40,12 @@ public class GameLifecycleManager {
             try {
                 currentPack = levelManager.currentFile.getParentFile().getName();
                 String name = levelManager.currentFile.getName();
-                currentLevelNum = Integer.parseInt(name.replaceAll("\\D+", ""));
+
+                // --- FIXED: Safe parsing ---
+                String numberOnly = name.replaceAll("\\D+", "");
+                if (!numberOnly.isEmpty()) {
+                    currentLevelNum = Integer.parseInt(numberOnly);
+                }
             } catch (Exception ignored) {}
         }
 

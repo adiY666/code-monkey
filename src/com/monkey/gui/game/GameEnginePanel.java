@@ -1,5 +1,6 @@
 package com.monkey.gui.game;
 
+import com.monkey.animation.AnimationManager; // <-- Added Import
 import com.monkey.core.GameObject;
 import com.monkey.core.Turtle;
 import com.monkey.gui.editor.MapEditorLogic;
@@ -46,6 +47,7 @@ public class GameEnginePanel extends JPanel {
     // --- SUB-SYSTEMS ---
     private final GameRenderer renderer;
     private final MapEditorLogic mapEditor;
+    private final AnimationManager animationManager; // <-- Added Sub-System
 
     public GameEnginePanel() {
         setBackground(new Color(34, 139, 34));
@@ -56,8 +58,14 @@ public class GameEnginePanel extends JPanel {
         this.sightTool = new SightTool(this);
 
         // Initialize our separated modules!
+        this.animationManager = new AnimationManager(this); // <-- Initialized
         this.renderer = new GameRenderer(this);
         this.mapEditor = new MapEditorLogic(this);
+    }
+
+    // --- THE FIX: GETTER FOR THE INTERPRETER ---
+    public AnimationManager getAnimationManager() {
+        return animationManager;
     }
 
     // --- GETTERS ---
@@ -112,6 +120,10 @@ public class GameEnginePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        // <-- Added to process active movement before drawing
+        animationManager.update();
+
         // Let the renderer handle all the complex drawing!
         renderer.draw((Graphics2D) g);
     }

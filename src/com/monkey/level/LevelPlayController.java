@@ -31,17 +31,19 @@ public class LevelPlayController {
             autoScroll.updateMapSize();
             engine.repaint();
 
-            // --- NEW: Refresh the sidebar UI to hide/show unlocked commands! ---
+            // --- FIXED: Safe parsing and secure fallback ---
             try {
                 String packName = f.getParentFile().getName();
                 String fileName = f.getName();
-                int levelNum = Integer.parseInt(fileName.replaceAll("\\D+", ""));
+
+                String numberOnly = fileName.replaceAll("\\D+", "");
+                int levelNum = numberOnly.isEmpty() ? 1 : Integer.parseInt(numberOnly);
 
                 context.getSidebar().unlockCommandsForLevel(packName, levelNum);
             } catch (Exception e) {
-                context.getSidebar().unlockCommandsForLevel("custom", 999);
+                // Lock everything to basic level 1 if custom map is loaded
+                context.getSidebar().unlockCommandsForLevel("basic", 1);
             }
-            // -------------------------------------------------------------------
 
         } catch (Exception e) {
             e.printStackTrace();

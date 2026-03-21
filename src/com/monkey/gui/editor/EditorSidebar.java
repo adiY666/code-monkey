@@ -69,6 +69,7 @@ public class EditorSidebar extends JPanel {
         JPanel loopsInner = createInnerPanel(new Color(245, 238, 248));
         addCommandBtn(loopsInner, CommandRegistry.LOOP_FOR);
         addCommandBtn(loopsInner, CommandRegistry.LOOP_WHILE);
+        addCommandBtn(loopsInner, CommandRegistry.COND_IF);
 
         JPanel varsInner = createInnerPanel(new Color(233, 247, 239));
         addCommandBtn(varsInner, CommandRegistry.VAR_INT);

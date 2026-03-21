@@ -3,6 +3,7 @@ package com.monkey.animation;
 import com.monkey.gui.game.GameEnginePanel;
 import com.monkey.engine.CollisionChecker;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.Timer;
 
@@ -11,16 +12,25 @@ public class AnimationManager {
     private final GameEnginePanel panel;
     private final List<PopEffect> effects = new ArrayList<>();
 
+    // Tracks active background animations (like turtles)
+    private final List<Object> transitions = Collections.synchronizedList(new ArrayList<>());
+
     public AnimationManager(GameEnginePanel panel) {
         this.panel = panel;
         Timer loop = new Timer(30, e -> update());
         loop.start();
     }
 
-    private void update() {
-        if (effects.isEmpty()) return;
-        effects.removeIf(p -> !p.update());
-        panel.repaint();
+    // --- NEW: Sync Logic for the Interpreter ---
+    public boolean isAnimating() {
+        return !transitions.isEmpty();
+    }
+
+    public void update() {
+        if (!effects.isEmpty()) {
+            effects.removeIf(p -> !p.update());
+            panel.repaint();
+        }
     }
 
     public static void smoothStep(GameEnginePanel engine, double totalDist, int frames) throws InterruptedException {
@@ -59,7 +69,6 @@ public class AnimationManager {
         }
     }
 
-    // --- NEW: Sight Animation! ---
     public static void showSightAnim(GameEnginePanel engine, boolean found) throws InterruptedException {
         if (found) {
             // Found it! Happy little jump
@@ -69,11 +78,10 @@ public class AnimationManager {
             engine.monkeyY = origY;
             engine.repaint();
         } else {
-            // Didn't find it! Confused look left and right
             smoothTurn(engine, -30, 6);
             smoothTurn(engine, 60, 12);
             smoothTurn(engine, -30, 6);
         }
-        Thread.sleep(100); // Tiny pause before next line of code
+        Thread.sleep(100);
     }
 }

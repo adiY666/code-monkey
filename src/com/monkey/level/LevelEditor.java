@@ -1,11 +1,10 @@
 package com.monkey.level;
 
 import com.monkey.gui.game.GameEnginePanel;
-import java.awt.BorderLayout;
+
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 import javax.swing.*;
 
@@ -94,64 +93,5 @@ public class LevelEditor {
             LevelLoader.saveLevel(file, engine, category, sort);
             JOptionPane.showMessageDialog(parent, "Saved!");
         } catch(Exception e) { e.printStackTrace(); }
-    }
-
-    public void openReorderTool() {
-        String[] cats = {"basics", "loops", "vars", "advanced", "custom"};
-        String cat = (String) JOptionPane.showInputDialog(parent, "Category:", "Reorder", 3, null, cats, cats[0]);
-        if(cat == null) return;
-
-        File dir = new File("levels/" + cat);
-        File[] files = dir.listFiles((d, n) -> n.endsWith(".json"));
-        if(files == null || files.length < 2) return;
-        Arrays.sort(files);
-
-        JPanel p = new JPanel(new BorderLayout());
-        DefaultListModel<File> model = new DefaultListModel<>();
-        for(File f : files) model.addElement(f);
-        JList<File> list = new JList<>(model);
-        p.add(new JScrollPane(list), BorderLayout.CENTER);
-
-        JPanel btns = new JPanel(new GridLayout(1, 2));
-        JButton up = new JButton("▲");
-        JButton down = new JButton("▼");
-        btns.add(up); btns.add(down);
-        p.add(btns, BorderLayout.SOUTH);
-
-        up.addActionListener(e -> moveItem(list, model, -1));
-        down.addActionListener(e -> moveItem(list, model, 1));
-
-        JOptionPane.showMessageDialog(parent, p, "Reorder " + cat, JOptionPane.PLAIN_MESSAGE);
-    }
-
-    private void moveItem(JList<File> list, DefaultListModel<File> model, int dir) {
-        int idx = list.getSelectedIndex();
-        if(idx == -1) return;
-        int newIdx = idx + dir;
-        if(newIdx < 0 || newIdx >= model.size()) return;
-
-        File f1 = model.get(idx);
-        File f2 = model.get(newIdx);
-
-        // Swap filenames
-        File temp = new File(f1.getParent(), "TEMP_" + System.currentTimeMillis() + ".json");
-        File dest1 = new File(f1.getParent(), f2.getName());
-        File dest2 = new File(f1.getParent(), f1.getName()); // Swap names
-
-        // Rename dance
-        String n1 = f1.getName();
-        String n2 = f2.getName();
-
-        f1.renameTo(temp);
-        f2.renameTo(new File(f2.getParent(), n1));
-        temp.renameTo(new File(f1.getParent(), n2));
-
-        // Refresh UI
-        File f1New = new File(f1.getParent(), n2); // f1 now has f2's name
-        File f2New = new File(f1.getParent(), n1);
-
-        model.set(idx, f2New);
-        model.set(newIdx, f1New);
-        list.setSelectedIndex(newIdx);
     }
 }

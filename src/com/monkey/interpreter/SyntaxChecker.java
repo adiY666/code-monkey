@@ -26,6 +26,19 @@ public class SyntaxChecker {
             if (openBraces < 0) return "Syntax Error on line " + (i + 1) + ": Extra '}'.";
             if (openParens < 0) return "Syntax Error on line " + (i + 1) + ": Extra ')'.";
 
+            String keyword = null;
+            if (line.startsWith("for")) keyword = "for";
+            else if (line.startsWith("while")) keyword = "while";
+            else if (line.startsWith("int ")) keyword = "int";
+            else if (line.startsWith("if")) keyword = "if";
+
+            if (keyword != null) {
+                GameCommand rule = CommandRegistry.getCompilerRule(keyword);
+                if (rule != null && !rule.isUnlocked(currentPack, currentLevel)) {
+                    return "Locked Feature on line " + (i + 1) + ": You must reach '" + rule.unlockPack + " Level " + rule.unlockLevel + "' to use '" + keyword + "'.";
+                }
+            }
+
             if (line.startsWith("for") && line.contains("int ")) {
                 try {
                     String varName = line.substring(line.indexOf("int "), line.indexOf(";")).replace("int ", "").split("=")[0].trim();
@@ -63,22 +76,47 @@ public class SyntaxChecker {
 
             if (line.contains("(") && line.contains(")")) {
                 String cmdName = line.substring(0, line.indexOf("(")).trim();
+                String lookupName = cmdName;
 
-                if(cmdName.contains(".")) cmdName = cmdName.substring(cmdName.indexOf(".") + 1);
-                if(cmdName.contains("]")) cmdName = cmdName.substring(cmdName.indexOf("]") + 1);
+                if(cmdName.contains(".")) {
+                    cmdName = cmdName.substring(cmdName.indexOf(".") + 1);
+                    lookupName = "turtle." + cmdName;
+                } else if(cmdName.contains("]")) {
+                    cmdName = cmdName.substring(cmdName.indexOf("]") + 1);
+                    lookupName = "turtle." + cmdName;
+                }
 
                 String arg = line.substring(line.indexOf("(") + 1, line.lastIndexOf(")")).trim();
 
-                GameCommand commandRule = CommandRegistry.getCompilerRule(cmdName);
+                GameCommand commandRule = CommandRegistry.getCompilerRule(lookupName);
+                if (commandRule == null) commandRule = CommandRegistry.getCompilerRule(cmdName);
 
                 if (commandRule != null) {
-                    // --- Anti-Cheat Check! ---
                     if (!commandRule.isUnlocked(currentPack, currentLevel)) {
                         return "Locked Command on line " + (i + 1) + ": You must reach '" + commandRule.unlockPack + " Level " + commandRule.unlockLevel + "' to use '" + cmdName + "()'.";
                     }
 
-                    String error = TypeChecker.validate(commandRule, arg, declaredVars, i + 1);
-                    if (error != null) return error;
+                    // --- FIXED TYPE VALIDATION ---
+                    String expectedType = commandRule.requiredType;
+                    if (expectedType.equals("int")) {
+                        // Strip out quotes to check if the inner word is left/right
+                        String cleanArg = arg.replace("'", "").replace("\"", "").trim();
+
+                        // Bypass: Allow "left" and "right" as special built-in constants
+                        if (cleanArg.equals("left") || cleanArg.equals("right")) {
+                            // Do nothing! Let it pass!
+                        }
+                        // Normal integer checks
+                        else if (arg.contains("'") || arg.contains("\"")) {
+                            return "Type Error on line " + (i + 1) + ": '" + cmdName + "()' requires a number or variable, not a String.";
+                        } else if (arg.matches("[a-zA-Z]+") && !declaredVars.contains(arg)) {
+                            return "Reference Error on line " + (i + 1) + ": Variable '" + arg + "' is used but does not exist.";
+                        }
+                    } else if (expectedType.equals("String")) {
+                        if (!arg.contains("'") && !arg.contains("\"") && arg.matches("[a-zA-Z]+") && !declaredVars.contains(arg)) {
+                            return "Reference Error on line " + (i + 1) + ": Variable '" + arg + "' does not exist. Forgot quotes?";
+                        }
+                    }
                 }
             }
         }

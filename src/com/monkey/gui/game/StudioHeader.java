@@ -44,7 +44,6 @@ public class StudioHeader extends JPanel {
             add(Box.createRigidArea(new Dimension(5, 0)));
             addBtn("🔄 UPDATE", UIConstants.BTN_ORANGE, e -> context.getLevelManager().updateLevelDialog());
             add(Box.createRigidArea(new Dimension(5, 0)));
-            addBtn("⚙ SETTINGS", UIConstants.BTN_PURPLE, e -> context.getLevelManager().openAdminSettings());
         } else {
             JLabel label = new JLabel("PLAYER: " + user.getUsername());
             label.setForeground(Color.LIGHT_GRAY);

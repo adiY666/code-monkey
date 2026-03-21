@@ -9,7 +9,6 @@ public class GameCommand {
     public final String defaultCode;
     public final Color uiColor;
 
-    // Unlock Requirements
     public final String unlockPack;
     public final int unlockLevel;
 
@@ -23,15 +22,11 @@ public class GameCommand {
         this.unlockLevel = unlockLevel;
     }
 
-    // Smart check to see if the command should be available
     public boolean isUnlocked(String currentPack, int currentLevel) {
         int cmdPackIdx = CommandRegistry.getPackIndex(this.unlockPack);
         int currPackIdx = CommandRegistry.getPackIndex(currentPack);
 
         // If in a future pack, or the exact right pack and level
-        if (currPackIdx > cmdPackIdx) return true;
-        if (currPackIdx == cmdPackIdx && currentLevel >= this.unlockLevel) return true;
-
-        return false;
+        return currPackIdx > cmdPackIdx || (currPackIdx == cmdPackIdx && currentLevel >= this.unlockLevel);
     }
 }

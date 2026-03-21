@@ -34,15 +34,6 @@ public class LevelAdminController {
         editor.showUpdateDialog(currentFile);
     }
 
-    public void openAdminSettings() {
-        if (checkDev()) return;
-        String[] ops = {"Reorder Levels", "Delete Level"};
-        int c = JOptionPane.showOptionDialog(context, "Tool:", "Admin",
-                JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, null, ops, ops[0]);
-
-        if (c == 0) editor.openReorderTool();
-    }
-
     private boolean checkDev() {
         if (context.getCurrentUser().isDeveloper()) return false;
         JOptionPane.showMessageDialog(context, "Access Denied");

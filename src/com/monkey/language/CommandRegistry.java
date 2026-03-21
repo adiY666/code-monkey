@@ -8,15 +8,16 @@ public class CommandRegistry {
 
     private static final Map<String, GameCommand> compilerRules = new HashMap<>();
 
-    // The progression order of your map folders
-    public static final String[] PACK_ORDER = {"basic", "loops", "vars"};
+    // Added "turtles" to the array just in case!
+    public static final String[] PACK_ORDER = {"basic", "loops", "vars", "turtles"};
 
     public static int getPackIndex(String pack) {
-        if (pack == null) return -1;
+        if (pack == null) return 0; // Default to basic
         for (int i = 0; i < PACK_ORDER.length; i++) {
-            if (PACK_ORDER[i].equalsIgnoreCase(pack)) return i;
+            // Treat "levels" folder as basic (0) to prevent God Mode
+            if (PACK_ORDER[i].equalsIgnoreCase(pack) || pack.equalsIgnoreCase("levels")) return Math.max(0, i);
         }
-        return 999; // If playing a custom map, unlock everything
+        return 0; // If unknown map folder, lock it to basic to prevent cheating!
     }
 
     private static final Color BLUE = new Color(52, 152, 219);
@@ -35,16 +36,18 @@ public class CommandRegistry {
     public static final GameCommand IS_TOUCH = registerRule(new GameCommand("isTouched", "String", "👆 TOUCHING", "isTouched()", GREEN, "vars", 3));
     public static final GameCommand IS_SEE = registerRule(new GameCommand("isSeeing", "String", "👁 SIGHT", "isSeeing()", GREEN, "vars", 5));
 
-    public static final GameCommand LOOP_FOR = new GameCommand("for", "none", "🔄 REPEAT 3", "for(int i = 0; i < 3; i++){\n\n}\n", PURPLE, "loops", 1);
-    public static final GameCommand LOOP_WHILE = new GameCommand("while", "none", "❓ WHILE", "while(x < 300){\n\n}\n", PURPLE, "loops", 1);
-
-    public static final GameCommand VAR_INT = new GameCommand("int", "none", "int x = 0", "int x = 0;\n", GREEN, "vars", 1);
+    // --- FIXED: ADDED registerRule HERE ---
+    public static final GameCommand LOOP_FOR = registerRule(new GameCommand("for", "none", "🔄 REPEAT 3", "for(int i = 0; i < 3; i++){\n\n}\n", PURPLE, "loops", 1));
+    public static final GameCommand LOOP_WHILE = registerRule(new GameCommand("while", "none", "❓ WHILE", "while(x < 300){\n\n}\n", PURPLE, "loops", 1));
+    public static final GameCommand COND_IF = registerRule(new GameCommand("if", "none", "🔀 IF", "if(x < 5){\n\n}\n", PURPLE, "loops", 1));
+    public static final GameCommand VAR_INT = registerRule(new GameCommand("int", "none", "int x = 0", "int x = 0;\n", GREEN, "vars", 1));
     public static final GameCommand VAR_STEP = new GameCommand("step", "int", "step(x)", "step(x);\n", GREEN, "vars", 1);
 
-    public static final GameCommand T_STEP_FWD = new GameCommand("step", "int", "🐢 STEP(50)", "turtles[0].step(50);\n", TEAL, "basic", 3);
-    public static final GameCommand T_STEP_BCK = new GameCommand("step", "int", "🐢 STEP(-50)", "turtles[0].step(-50);\n", TEAL, "basic", 3);
-    public static final GameCommand T_TURN_L = new GameCommand("turn", "int", "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL, "basic", 3);
-    public static final GameCommand T_TURN_R = new GameCommand("turn", "int", "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL, "basic", 3);
+    // --- FIXED: Changed prefix to "turtle.step" so it doesn't overwrite Monkey ---
+    public static final GameCommand T_STEP_FWD = registerRule(new GameCommand("turtle.step", "int", "🐢 STEP(50)", "turtles[0].step(50);\n", TEAL, "basic", 3));
+    public static final GameCommand T_STEP_BCK = new GameCommand("turtle.step", "int", "🐢 STEP(-50)", "turtles[0].step(-50);\n", TEAL, "basic", 3);
+    public static final GameCommand T_TURN_L = registerRule(new GameCommand("turtle.turn", "int", "🐢 ↰ LEFT", "turtles[0].turn('left');\n", TEAL, "basic", 3));
+    public static final GameCommand T_TURN_R = new GameCommand("turtle.turn", "int", "🐢 ↱ RIGHT", "turtles[0].turn('right');\n", TEAL, "basic", 3);
 
     public static final GameCommand OBJ_BANANA = new GameCommand("banana", "none", "🍌 BANANA", "'banana'", ORANGE, "vars", 3);
     public static final GameCommand OBJ_STONE = new GameCommand("stone", "none", "🪨 STONE", "'stone'", ORANGE, "vars", 3);

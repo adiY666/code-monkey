@@ -77,7 +77,7 @@ public class CommandProcessor {
         }
     }
 
-    private double getTurnAngle(String line, Map<String, Integer> vars) throws InterruptedException {
+    private double getTurnAngle(String line, Map<String, Integer> vars) {
         if (line.contains("'left'") || line.contains("\"left\"")) return 90;
         else if (line.contains("'right'") || line.contains("\"right\"")) return -90;
         else return MathEvaluator.parseValue(engine, line, vars);

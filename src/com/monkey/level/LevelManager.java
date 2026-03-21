@@ -49,8 +49,4 @@ public class LevelManager {
     public void updateLevelDialog() {
         adminController.updateLevelDialog(currentFile);
     }
-
-    public void openAdminSettings() {
-        adminController.openAdminSettings();
-    }
 }
