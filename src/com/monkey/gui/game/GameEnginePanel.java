@@ -1,6 +1,6 @@
 package com.monkey.gui.game;
 
-import com.monkey.animation.AnimationManager; // <-- Added Import
+import com.monkey.animation.AnimationManager;
 import com.monkey.core.GameObject;
 import com.monkey.core.Turtle;
 import com.monkey.gui.editor.MapEditorLogic;
@@ -47,7 +47,7 @@ public class GameEnginePanel extends JPanel {
     // --- SUB-SYSTEMS ---
     private final GameRenderer renderer;
     private final MapEditorLogic mapEditor;
-    private final AnimationManager animationManager; // <-- Added Sub-System
+    private final AnimationManager animationManager;
 
     public GameEnginePanel() {
         setBackground(new Color(34, 139, 34));
@@ -58,15 +58,12 @@ public class GameEnginePanel extends JPanel {
         this.sightTool = new SightTool(this);
 
         // Initialize our separated modules!
-        this.animationManager = new AnimationManager(this); // <-- Initialized
+        this.animationManager = new AnimationManager(this);
         this.renderer = new GameRenderer(this);
         this.mapEditor = new MapEditorLogic(this);
     }
 
-    // --- THE FIX: GETTER FOR THE INTERPRETER ---
-    public AnimationManager getAnimationManager() {
-        return animationManager;
-    }
+    public AnimationManager getAnimationManager() { return animationManager; }
 
     // --- GETTERS ---
     public Point getCurrentMouse() { return currentMouse; }
@@ -88,7 +85,7 @@ public class GameEnginePanel extends JPanel {
         while(it.hasNext()) {
             GameObject b = it.next();
             if(Math.hypot(b.x - monkeyX, b.y - monkeyY) < 40) {
-                renderer.addPop(b.x, b.y); // Tell renderer to show effect
+                renderer.addPop(b.x, b.y);
                 it.remove();
                 repaint();
 
@@ -120,11 +117,7 @@ public class GameEnginePanel extends JPanel {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-        // <-- Added to process active movement before drawing
         animationManager.update();
-
-        // Let the renderer handle all the complex drawing!
         renderer.draw((Graphics2D) g);
     }
 
@@ -133,9 +126,26 @@ public class GameEnginePanel extends JPanel {
         this.ghostTool = tool; this.ghostX = x; this.ghostY = y; repaint();
     }
 
-    // Pass requests to MapEditorLogic
     public void addObject(String type, int x, int y) { mapEditor.addObject(type, x, y); }
     public void removeObject(int x, int y) { mapEditor.removeObject(x, y); }
-    public Object getGameObjectAt(int x, int y) { return mapEditor.getGameObjectAt(x, y); }
+
+    // --- UPDATED OBJECT DETECTOR ---
+    public Object getGameObjectAt(int x, int y) {
+        // 1. Check if we clicked the Monkey
+        if (Math.hypot(monkeyX - x, monkeyY - y) < 40) {
+            return "Monkey";
+        }
+
+        // 2. Check if we clicked a Turtle
+        for (Turtle t : turtles) {
+            if (Math.hypot(t.x - x, t.y - y) < 40) {
+                return t;
+            }
+        }
+
+        // 3. Delegate to MapEditorLogic for static items (Bananas, etc.)
+        return mapEditor.getGameObjectAt(x, y);
+    }
+
     public JSONObject getLayoutAsJson() { return mapEditor.getLayoutAsJson(); }
 }

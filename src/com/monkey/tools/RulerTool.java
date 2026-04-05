@@ -1,6 +1,7 @@
 package com.monkey.tools;
 
 import com.monkey.core.GameObject;
+import com.monkey.core.Turtle; // <-- Make sure to import Turtle
 import com.monkey.gui.game.GameEnginePanel;
 
 import java.awt.BasicStroke;
@@ -54,6 +55,10 @@ public class RulerTool {
                 } else if (clicked.equals("Monkey")) {
                     objX = engine.monkeyX;
                     objY = engine.monkeyY;
+                } else if (clicked instanceof Turtle) {
+                    // --- THE SAFETY CATCH FOR TURTLES ---
+                    objX = ((Turtle) clicked).x;
+                    objY = ((Turtle) clicked).y;
                 } else {
                     return; // Unknown object
                 }
@@ -132,9 +137,6 @@ public class RulerTool {
         double angle = Math.toDegrees(Math.atan2(-dy, dx));
         if (angle < 0) angle += 360;
 
-        // --- FIX IS HERE ---
-        // distance, (int)dx, and (int)-dy are passed to %d
-        // angle is passed to %.0f
         return String.format("Dist: %d | X:%d Y:%d | ∠ %.0f°", distance, (int) dx, (int) -dy, angle);
     }
 }

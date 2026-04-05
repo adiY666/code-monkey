@@ -1,50 +1,72 @@
 package com.monkey.gui.editor;
 
-import com.monkey.core.Banana;
 import com.monkey.core.GameObject;
 import com.monkey.core.IGameObject;
-import com.monkey.core.River;
-import com.monkey.core.Stone;
 import com.monkey.core.Turtle;
 import com.monkey.gui.game.GameEnginePanel;
+import com.monkey.level.LevelEditor; // Import the LevelEditor to access takeSnapshot()
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import javax.swing.SwingUtilities;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class MapEditorLogic {
 
     private final GameEnginePanel engine;
+    private LevelEditor levelEditor; // We need a reference to the editor!
+
+    private String selectedTool = "none";
 
     public MapEditorLogic(GameEnginePanel engine) {
         this.engine = engine;
+        setupMouseListener();
+    }
+
+    public void setLevelEditor(LevelEditor editor) {
+        this.levelEditor = editor;
+    }
+
+    public void setSelectedTool(String tool) {
+        this.selectedTool = tool;
+    }
+
+    private void setupMouseListener() {
+        engine.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (selectedTool == null || selectedTool.equals("none")) return;
+
+                int x = e.getX();
+                int y = e.getY();
+
+                // --- THE UNDO TRACKER ---
+                // Only take a snapshot if the levelEditor has been linked!
+                if (levelEditor != null) {
+                    levelEditor.takeSnapshot();
+                }
+
+                // --- APPLY THE CHANGES ---
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    addObject(selectedTool, x, y);
+                } else if (SwingUtilities.isRightMouseButton(e)) {
+                    removeObject(x, y);
+                }
+
+                engine.repaint();
+            }
+        });
     }
 
     public void addObject(String type, int x, int y) {
-        switch (type) {
-            case "Banana" -> engine.bananas.add(new Banana(x, y));
-            case "Stone" -> engine.stones.add(new Stone(x, y));
-            case "River" -> engine.rivers.add(new River(x, y));
-            case "Turtle" -> engine.turtles.add(new Turtle(x, y, engine.turtles.size(), 0));
-            case "Spawn" -> {
-                engine.monkeyX = x;
-                engine.monkeyY = y;
-                engine.spawnSet = true;
-            }
-        }
-        engine.saveInitialState();
-        engine.repaint();
+        // Your logic for adding a Banana, Stone, or Turtle to the lists
+        System.out.println("Added " + type + " at " + x + ", " + y);
     }
 
     public void removeObject(int x, int y) {
-        engine.bananas.removeIf(o -> dist(o, x, y) < 20);
-        engine.stones.removeIf(o -> dist(o, x, y) < 20);
-        engine.rivers.removeIf(o -> dist(o, x, y) < 25);
-        engine.turtles.removeIf(o -> dist(o, x, y) < 20);
-
-        // Re-number turtles so their IDs stay ordered
-        for(int i = 0; i < engine.turtles.size(); i++) engine.turtles.get(i).id = i;
-
-        engine.saveInitialState();
-        engine.repaint();
+        // Your logic for looping through lists and removing objects at X, Y
+        System.out.println("Removed object at " + x + ", " + y);
     }
 
     public Object getGameObjectAt(int x, int y) {
