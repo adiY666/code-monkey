@@ -60,13 +60,39 @@ public class MapEditorLogic {
     }
 
     public void addObject(String type, int x, int y) {
-        // Your logic for adding a Banana, Stone, or Turtle to the lists
-        System.out.println("Added " + type + " at " + x + ", " + y);
+        switch (type) {
+            case "Banana":
+                engine.bananas.add(new com.monkey.core.Banana(x, y));
+                break;
+            case "Stone":
+                engine.stones.add(new com.monkey.core.Stone(x, y));
+                break;
+            case "River":
+                engine.rivers.add(new com.monkey.core.River(x, y));
+                break;
+            case "Turtle":
+                // Automatically assign the next available ID to the turtle (T0, T1, T2...)
+                int newId = 0;
+                for (Turtle t : engine.turtles) {
+                    if (t.id >= newId) newId = t.id + 1;
+                }
+                engine.turtles.add(new Turtle(x, y, newId, 0, 0));
+                break;
+            case "Spawn":
+                engine.monkeyX = x;
+                engine.monkeyY = y;
+                // Update the starting location so the monkey resets here!
+                engine.saveInitialState();
+                break;
+        }
     }
 
     public void removeObject(int x, int y) {
-        // Your logic for looping through lists and removing objects at X, Y
-        System.out.println("Removed object at " + x + ", " + y);
+        // Remove anything within 20 pixels of the right-click
+        engine.bananas.removeIf(b -> Math.hypot(b.x - x, b.y - y) < 20);
+        engine.stones.removeIf(s -> Math.hypot(s.x - x, s.y - y) < 20);
+        engine.rivers.removeIf(r -> Math.hypot(r.x - x, r.y - y) < 20);
+        engine.turtles.removeIf(t -> Math.hypot(t.x - x, t.y - y) < 20);
     }
 
     public Object getGameObjectAt(int x, int y) {
