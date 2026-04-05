@@ -1,58 +1,97 @@
 package com.monkey.engine;
 
 import com.monkey.core.GameObject;
+import com.monkey.core.ITerrain;
 import com.monkey.core.Turtle;
 import com.monkey.gui.game.GameEnginePanel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CollisionChecker {
 
-    // Hitbox sizes for the 50x50 tiles
-    private static final double OBSTACLE_RADIUS = 50.0;
-    private static final double RIVER_RADIUS = 50.0;
-    private static final double TURTLE_RADIUS = 50.0;
+    private static List<GameObject> getAllObjects(GameEnginePanel engine) {
+        List<GameObject> allObjects = new ArrayList<>();
+        allObjects.addAll(engine.stones);
+        allObjects.addAll(engine.rivers);
+        allObjects.addAll(engine.bananas);
+        allObjects.addAll(engine.turtles);
 
-    // Returns TRUE if the target position hits a stone
-    public static boolean isStoneCollision(GameEnginePanel engine, double targetX, double targetY) {
-        for (GameObject stone : engine.stones) {
-            if (Math.hypot(stone.x - targetX, stone.y - targetY) < OBSTACLE_RADIUS) {
-                return true;
-            }
-        }
-        return false;
+        return allObjects;
     }
 
-    // Returns TRUE if the monkey is drowning (in water without a turtle)
-    public static boolean isWaterCollision(GameEnginePanel engine, double targetX, double targetY) {
-        boolean overWater = false;
-        for (GameObject river : engine.rivers) {
-            if (Math.hypot(river.x - targetX, river.y - targetY) < RIVER_RADIUS) {
-                overWater = true;
-                break;
-            }
-        }
+    public static boolean isSolidCollision(GameEnginePanel engine, double targetX, double targetY) {
 
-        if (overWater) {
-            boolean onTurtle = false;
-            for (Turtle turtle : engine.turtles) {
-                if (Math.hypot(turtle.x - targetX, turtle.y - targetY) < TURTLE_RADIUS) {
-                    onTurtle = true;
-                    break;
+        for (GameObject obj : getAllObjects(engine)) {
+            if (obj instanceof ITerrain && ((ITerrain) obj).isSolid()) {
+
+                if (obj.hitbox != null) {
+                    if (obj.hitbox.contains(targetX, targetY)) {
+                        return true;
+                    }
+                }
+                else {
+                    double radius = ((ITerrain) obj).getSize() / 2.0;
+                    if (Math.hypot(obj.x - targetX, obj.y - targetY) < radius) {
+                        return true;
+                    }
                 }
             }
-            return !onTurtle; // If over water but NOT on a turtle, it's a collision!
         }
+
         return false;
     }
 
-    // Returns TRUE if the turtle walks onto land
+    public static boolean isDeadlyCollision(GameEnginePanel engine, double targetX, double targetY) {
+        boolean overDeadlyGround = false;
+
+        for (GameObject obj : getAllObjects(engine)) {
+            if (obj instanceof ITerrain && ((ITerrain) obj).isDeadly()) {
+
+                if (obj.hitbox != null) {
+                    if (obj.hitbox.contains(targetX, targetY)) overDeadlyGround = true;
+                } else {
+                    double radius = ((ITerrain) obj).getSize() / 2.0;
+                    if (Math.hypot(obj.x - targetX, obj.y - targetY) < radius) overDeadlyGround = true;
+                }
+            }
+
+            if (overDeadlyGround) break;
+        }
+
+        if (overDeadlyGround) {
+            for (Turtle turtle : engine.turtles) {
+                if (Math.hypot(turtle.x - targetX, turtle.y - targetY) < 40) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     public static boolean isTurtleLandCollision(GameEnginePanel engine, double targetX, double targetY) {
         boolean onWater = false;
-        for (GameObject river : engine.rivers) {
-            if (Math.hypot(river.x - targetX, river.y - targetY) < RIVER_RADIUS) {
-                onWater = true;
-                break;
+
+        for (GameObject obj : getAllObjects(engine)) {
+            if (obj instanceof ITerrain && ((ITerrain) obj).isDeadly()) {
+
+                if (obj.hitbox != null) {
+                    if (obj.hitbox.contains(targetX, targetY)) {
+                        onWater = true;
+                        break;
+                    }
+                } else {
+                    double radius = ((ITerrain) obj).getSize() / 2.0;
+                    if (Math.hypot(obj.x - targetX, obj.y - targetY) < radius) {
+                        onWater = true;
+                        break;
+                    }
+                }
             }
         }
-        return !onWater; // If NOT on water, it's a collision!
+
+        return !onWater;
     }
 }

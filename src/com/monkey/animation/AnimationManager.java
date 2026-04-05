@@ -43,11 +43,11 @@ public class AnimationManager {
             double nextX = engine.monkeyX + dx;
             double nextY = engine.monkeyY + dy;
 
-            if (CollisionChecker.isStoneCollision(engine, nextX, nextY)) {
+            if (CollisionChecker.isSolidCollision(engine, nextX, nextY)) {
                 break;
             }
 
-            if (CollisionChecker.isWaterCollision(engine, nextX, nextY)) {
+            if (CollisionChecker.isDeadlyCollision(engine, nextX, nextY)) {
                 throw new RuntimeException("Monkey fell in the water!");
             }
 

@@ -1,6 +1,7 @@
 package com.monkey.core;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Rectangle;
 
 public class Stone extends GameObject implements ITerrain {
 
@@ -14,4 +15,8 @@ public class Stone extends GameObject implements ITerrain {
     @Override public boolean isSolid() { return true; }
 
     @Override public boolean isDeadly() { return false; }
+
+    @Override public Color getColor() { return new Color(100, 100, 100); }
+
+    @Override public int getSize() { return 45; }
 }
