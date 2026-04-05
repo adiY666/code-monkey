@@ -28,25 +28,22 @@ public class TurtleAnimation {
                     double nextX = turtle.x + dx;
                     double nextY = turtle.y + dy;
 
-                    // 1. Turtle going on land fails the level
                     if (CollisionChecker.isTurtleLandCollision(engine, nextX, nextY)) {
                         throw new RuntimeException("Turtle walked onto land!");
                     }
 
-                    // 2. Check Monkey Collisions
                     if (monkeyOnBoard) {
                         double nextMonkeyX = engine.monkeyX + dx;
                         double nextMonkeyY = engine.monkeyY + dy;
 
-                        // --- CHANGED: Monkey hits stone while riding? Stop moving gently. ---
-                        if (CollisionChecker.isStoneCollision(engine, nextMonkeyX, nextMonkeyY)) {
+                        if (CollisionChecker.isSolidCollision(engine, nextMonkeyX, nextMonkeyY)) {
                             ((Timer) e.getSource()).stop();
                             latch.countDown();
                             return;
                         }
 
                         // Monkey falls in water (shouldn't happen on a turtle, but just in case)
-                        if (CollisionChecker.isWaterCollision(engine, nextMonkeyX, nextMonkeyY)) {
+                        if (CollisionChecker.isDeadlyCollision(engine, nextMonkeyX, nextMonkeyY)) {
                             throw new RuntimeException("Monkey fell in the water!");
                         }
 
@@ -54,7 +51,6 @@ public class TurtleAnimation {
                         engine.monkeyY = nextMonkeyY;
                     }
 
-                    // Safely apply move
                     turtle.x = nextX;
                     turtle.y = nextY;
 
@@ -67,7 +63,6 @@ public class TurtleAnimation {
                         latch.countDown();
                     }
                 } catch (RuntimeException ex) {
-                    // Deadly obstacle hit (water/land)! Stop the animation and signal failure.
                     hitDeadlyObstacle[0] = true;
                     ((Timer) e.getSource()).stop();
                     latch.countDown();

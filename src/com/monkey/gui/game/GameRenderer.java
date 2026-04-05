@@ -51,8 +51,8 @@ public class GameRenderer {
     public void draw(Graphics2D g2) {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        TerrainDesign.drawRivers(g2, engine.rivers);
-        TerrainDesign.drawStones(g2, engine.stones);
+        TerrainDesign.drawTerrain(g2, engine.rivers);
+        TerrainDesign.drawTerrain(g2, engine.stones);
 
         for (Turtle t : engine.turtles) t.draw(g2);
         for (GameObject b : engine.bananas) ItemDesign.drawBanana(g2, b.x, b.y);
