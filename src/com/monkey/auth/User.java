@@ -68,7 +68,6 @@ public class User {
         json.put("username", username);
         json.put("password", password);
         json.put("role", role.name());
-        // Now using the getter as requested
         json.put("progress", getProgressData());
         return json;
     }

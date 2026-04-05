@@ -1,13 +1,14 @@
 package com.monkey.auth;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 public class UserManager {
 
@@ -15,21 +16,18 @@ public class UserManager {
     private static UserManager instance;
     private final List<User> users;
 
-    // --- CHANGED SUPER USER TO "adi" ---
     public static final String SUPER_USER = "adi";
 
     private UserManager() {
         users = new ArrayList<>();
         loadUsers();
 
-        // 1. Ensure "adi" exists
         if (getUser(SUPER_USER) == null) {
-            // Default password for adi is "admin"
             User root = new User(SUPER_USER, "admin", User.Role.DEVELOPER, new JSONObject());
             users.add(root);
             saveUsers();
         }
-        // 2. FORCE UPDATE: Ensure "adi" is always DEVELOPER
+
         else {
             User root = getUser(SUPER_USER);
             if (!root.isDeveloper()) {
